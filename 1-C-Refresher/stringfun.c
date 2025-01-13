@@ -17,6 +17,26 @@ int  count_words(char *, int, int);
 
 int setup_buff(char *buff, char *user_str, int len){
     //TODO: #4:  Implement the setup buff as per the directions
+    int lenTracker = 0; //we will use this to track the length and make sure there is a correct ammount of '.'
+    while(lenTracker < len){
+        if(*user_str != '\0'){
+            if(*user_str == ' '){ //this detects if the character is a white space
+                while(*(user_str+1) == ' '){ //this detects if there is a duplicate white space and iterates through the string until it reaches a non whitespace 
+                    user_str++;
+                }
+            }
+            //printf("%c",*user_str);
+            *buff = *user_str; //this adds/copies the user string character into the buffer
+            user_str++; //incremnets up by one to move onto the next char
+        }
+        else{
+           // printf(".");
+            *buff = '.';
+        }
+        buff++; //increments up by 1 so we can assign chars into the next buffer index
+        lenTracker++; //len tracker goes up so we can keep track of the '.'
+    }
+    //printf("\n");
     return 0; //for now just so the code compiles. 
 }
 
@@ -50,6 +70,9 @@ int main(int argc, char *argv[]){
 
     //TODO:  #1. WHY IS THIS SAFE, aka what if arv[1] does not exist?
     //      PLACE A COMMENT BLOCK HERE EXPLAINING
+    // Answer: argv[1] is for getting the command line argument 
+    // in our case in this assignment it will be for getting the string we want to modify
+    // without it argv we cannot get the string we want to modify
     if ((argc < 2) || (*argv[1] != '-')){
         usage(argv[0]);
         exit(1);
@@ -67,6 +90,8 @@ int main(int argc, char *argv[]){
 
     //TODO:  #2 Document the purpose of the if statement below
     //      PLACE A COMMENT BLOCK HERE EXPLAINING
+    // Answer: this code is checking if the argument count is less than 3. if it is less than three 
+    // then it will call the functions usage which prints out a message
     if (argc < 3){
         usage(argv[0]);
         exit(1);
@@ -78,7 +103,11 @@ int main(int argc, char *argv[]){
     //          handle error if malloc fails by exiting with a 
     //          return code of 99
     // CODE GOES HERE FOR #3
-
+    buff = malloc(BUFFER_SZ);
+    if(buff == NULL){
+        printf("failed to allocate memory"); //this message will print if malloc fails
+        exit(99); //this will give a return code of 99
+    }
 
     user_str_len = setup_buff(buff, input_string, BUFFER_SZ);     //see todos
     if (user_str_len < 0){
