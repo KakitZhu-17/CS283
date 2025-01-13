@@ -17,27 +17,30 @@ int  count_words(char *, int, int);
 
 int setup_buff(char *buff, char *user_str, int len){
     //TODO: #4:  Implement the setup buff as per the directions
-    int lenTracker = 0; //we will use this to track the length and make sure there is a correct ammount of '.'
-    while(lenTracker < len){
-        if(*user_str != '\0'){
-            if(*user_str == ' '){ //this detects if the character is a white space
-                while(*(user_str+1) == ' '){ //this detects if there is a duplicate white space and iterates through the string until it reaches a non whitespace 
-                    user_str++;
-                }
+    int wordLen = 0;
+    int lenTracker = 0; //we will use this to track the length and make sure there is a correct ammount of '.' along with checking if the input string is bigger than BUFFER_SZ
+    while(*user_str != '\0'){
+        if(*user_str == ' '){ //this detects if the character is a white space
+            while(*(user_str+1) == ' '){ //this detects if there is a duplicate white space and iterates through the string until it reaches a non whitespace 
+                user_str++;
             }
-            //printf("%c",*user_str);
-            *buff = *user_str; //this adds/copies the user string character into the buffer
-            user_str++; //incremnets up by one to move onto the next char
         }
-        else{
-           // printf(".");
-            *buff = '.';
-        }
+        //printf("%c",*user_str);
+        *buff = *user_str; //this adds/copies the user string character into the buffer
+        wordLen++; //increments up the wordLen variable
+        user_str++; //incremnets up by one to move onto the next char
         buff++; //increments up by 1 so we can assign chars into the next buffer index
-        lenTracker++; //len tracker goes up so we can keep track of the '.'
+        lenTracker++;
+        if(lenTracker > len){
+            return -1;
+        }
     }
-    //printf("\n");
-    return 0; //for now just so the code compiles. 
+    while(lenTracker < len){
+        *buff = '.';
+        buff++;
+        lenTracker++;
+    }
+    return wordLen; //for now just so the code compiles. 
 }
 
 void print_buff(char *buff, int len){
