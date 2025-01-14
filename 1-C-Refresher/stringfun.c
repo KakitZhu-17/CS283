@@ -76,13 +76,38 @@ int count_words(char *buff, int len, int str_len){
 
 void strReversed(char *buff, int str_len){
     int i = str_len;
-    char *lastChar= buff + str_len-1;
+    char *lastChar= buff + str_len-1; //this just gets the last character of our buffer
     while(i != 0){
         printf("%c", *lastChar);
-        lastChar--;
-        i--;
+        lastChar--; //we increment down by 1 to print out the reversed string
+        i--; 
     }
     printf("\n");
+}
+
+void wordPrint(char* buff, int len,  int str_len){
+    printf("Word Print\n");
+    printf("----------\n");
+    int wc = count_words(buff,len,str_len);
+    int i = 0;
+    int j = 0;
+    int charCount = 0;
+    while(i < wc){
+        printf("%d. ",i+1);
+        int wordLen = 0;
+        while((*buff != ' ') && j < str_len){
+            printf("%c",*buff);
+            wordLen++;
+            buff++;
+            j++;
+            charCount++;
+        }
+        printf(" (%d)",wordLen);
+        buff++;
+        j++;
+        printf("\n");
+        i++;
+    }
 }
 
 //ADD OTHER HELPER FUNCTIONS HERE FOR OTHER REQUIRED PROGRAM OPTIONS
@@ -155,6 +180,10 @@ int main(int argc, char *argv[]){
         //       the case statement options
         case 'r':
             strReversed(buff,user_str_len);
+            break;
+
+        case 'w':
+            wordPrint(buff,BUFFER_SZ,user_str_len);
             break;
         default:
             usage(argv[0]);
