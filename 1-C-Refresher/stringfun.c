@@ -35,11 +35,12 @@ int setup_buff(char *buff, char *user_str, int len){
             return -1;
         }
     }
-    while(lenTracker < len){
-        *buff = '.';
+    while(lenTracker < len){ //this while loop basically adds '.' until lentracker is the same length as BUFFER_SZ
+        *buff = '.'; 
         buff++;
         lenTracker++;
     }
+    //printf("char count %d\n", wordLen);
     return wordLen; //for now just so the code compiles. 
 }
 
@@ -57,8 +58,31 @@ void usage(char *exename){
 }
 
 int count_words(char *buff, int len, int str_len){
-    //YOU MUST IMPLEMENT
-    return 0;
+    int i = 0;
+    int WordTracker = 0;
+    //printf("strlen %d\n",str_len);
+    while(i < len){
+        //printf("%c",*buff);
+        if(*buff == ' ' && i < str_len){
+            WordTracker++;
+        }
+        buff++;
+        i++;
+    }
+    WordTracker++;
+    //printf("\n");
+    return WordTracker;
+}
+
+void strReversed(char *buff, int str_len){
+    int i = str_len;
+    char *lastChar= buff + str_len-1;
+    while(i != 0){
+        printf("%c", *lastChar);
+        lastChar--;
+        i--;
+    }
+    printf("\n");
 }
 
 //ADD OTHER HELPER FUNCTIONS HERE FOR OTHER REQUIRED PROGRAM OPTIONS
@@ -127,9 +151,11 @@ int main(int argc, char *argv[]){
             }
             printf("Word Count: %d\n", rc);
             break;
-
         //TODO:  #5 Implement the other cases for 'r' and 'w' by extending
         //       the case statement options
+        case 'r':
+            strReversed(buff,user_str_len);
+            break;
         default:
             usage(argv[0]);
             exit(1);
