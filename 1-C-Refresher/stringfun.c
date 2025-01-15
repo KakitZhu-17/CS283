@@ -89,12 +89,12 @@ void wordPrint(char* buff, int len,  int str_len){
     printf("Word Print\n");
     printf("----------\n");
     int wc = count_words(buff,len,str_len);
-    int i = 0;
-    int j = 0;
-    int charCount = 0;
+    int i = 0; //this is for keeping track of the word count
+    int j = 0; //this keeps track of where we are in the buffer
+    int charCount = 0; 
     while(i < wc){
-        printf("%d. ",i+1);
-        int wordLen = 0;
+        printf("%d. ",i+1); //prints the numbers
+        int wordLen = 0; //this is for tracking the length of the individual words
         while((*buff != ' ') && j < str_len){
             printf("%c",*buff);
             wordLen++;
@@ -108,6 +108,61 @@ void wordPrint(char* buff, int len,  int str_len){
         printf("\n");
         i++;
     }
+}
+
+void replace(char* buff, int len, char* targetWord, char* replacement ){
+    printf("Modified Word: ");
+    int currentLen = 0;
+    int targetWordStart;
+    int targetWordEnd;
+    char *tempBuff = buff;
+    int matchWordLen = 0;
+    int firstOccurance = 0;
+    while(*tempBuff != '.'){
+        char *target = targetWord;
+        int match = 0;
+        while(*tempBuff == *target && firstOccurance == 0){
+            //printf("%c == %c\n", *buff,*target);
+            if((*(tempBuff+1) == ' '|| *(tempBuff+1) == '.') && *(target+1) == '\0'){
+                //printf("match %d\n",match);
+                //printf("end found at %d\n",currentLen);
+                matchWordLen = match;
+                targetWordEnd = currentLen;
+                targetWordStart = targetWordEnd - match;
+                firstOccurance = 1;
+
+            }
+            tempBuff++;
+            target++;
+            currentLen++;
+            match++;
+        }
+        tempBuff++;
+        currentLen++;
+    }
+    //printf("\n");
+    int i = 0;
+    int j = 0;
+    while(i < targetWordStart){
+        printf("%c",*buff);
+        buff++;
+        i++;
+    }
+    while(*replacement != '\0'){
+        printf("%c",*replacement);
+        replacement++;
+        i++;
+    }
+    while(j < matchWordLen+1){
+        buff++;
+        j++;
+    }
+    while(*buff != '.'){
+        printf("%c",*buff);
+        buff++;
+    }
+    
+    printf("\n");
 }
 
 //ADD OTHER HELPER FUNCTIONS HERE FOR OTHER REQUIRED PROGRAM OPTIONS
@@ -185,6 +240,18 @@ int main(int argc, char *argv[]){
         case 'w':
             wordPrint(buff,BUFFER_SZ,user_str_len);
             break;
+
+        case 'x':
+            char *targetWord = argv[3];
+            char *swapTo = argv[4];
+            if(argc == 5){
+                replace(buff,BUFFER_SZ,targetWord,swapTo);
+            }
+            else{
+                exit(-1);
+            }
+            break;
+
         default:
             usage(argv[0]);
             exit(1);
