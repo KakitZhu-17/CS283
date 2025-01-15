@@ -74,13 +74,25 @@ int count_words(char *buff, int len, int str_len){
     return WordTracker;
 }
 
-void strReversed(char *buff, int str_len){
-    int i = str_len;
-    char *lastChar= buff + str_len-1; //this just gets the last character of our buffer
-    while(i != 0){
-        printf("%c", *lastChar);
-        lastChar--; //we increment down by 1 to print out the reversed string
-        i--; 
+void strReversed(char *buff,int len ,int str_len){
+    char *strBegin = buff;
+    char *strEnd = buff + (str_len -1);
+    int begintracker = 0;
+    int endtracker = str_len;
+    char temp;
+    while(begintracker < endtracker){
+        temp = *strBegin;
+        *strBegin = *strEnd;
+        *strEnd = temp;
+        strBegin++;
+        strEnd--;
+        begintracker++;
+        endtracker--;
+    }
+    printf("Reversed String: ");
+    while(*buff != '.'){
+        printf("%c",*buff);
+        buff++;
     }
     printf("\n");
 }
@@ -234,7 +246,7 @@ int main(int argc, char *argv[]){
         //TODO:  #5 Implement the other cases for 'r' and 'w' by extending
         //       the case statement options
         case 'r':
-            strReversed(buff,user_str_len);
+            strReversed(buff,BUFFER_SZ,user_str_len);
             break;
 
         case 'w':
