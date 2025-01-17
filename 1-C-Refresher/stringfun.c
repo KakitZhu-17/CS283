@@ -196,7 +196,7 @@ int replace(char* buff,int len, int str_len, char* targetWord, char* replacement
         }
     }
     else if(difference < 0){ // if the word we want to replace is bigger than the replacement word but functions similiarly to the loop above
-        int shiftingPoint = replacementWordEnd - difference; //this just tracks how 
+        int shiftingPoint = replacementWordEnd - difference; //this just tracks where we should start shifting
         afterReplacement2+=shiftingPoint;
         int k = 0;
         while(k < replaceWordLen){
@@ -304,8 +304,8 @@ int main(int argc, char *argv[]){
             break;
 
         case 'x':
-            char *targetWord = argv[3];
-            char *swapTo = argv[4];
+            char *targetWord = *(argv+3);
+            char *swapTo = *(argv+4);
             if(argc == 5){
                 replace(buff,BUFFER_SZ,user_str_len,targetWord,swapTo);
             }
@@ -321,6 +321,7 @@ int main(int argc, char *argv[]){
 
     //TODO:  #6 Dont forget to free your buffer before exiting
     print_buff(buff,BUFFER_SZ);
+    free(buff);
     exit(0);
 }
 
