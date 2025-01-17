@@ -30,7 +30,7 @@ int setup_buff(char *buff, char *user_str, int len){
         }
         //printf("%c",*user_str);
         *buff = *user_str; //this adds/copies the user string character into the buffer
-        strLenTracker++; //increments up the wordLen variable
+        strLenTracker++; //increments up the strLenTracker variable
         user_str++; //incremnets up by one to move onto the next char
         buff++; //increments up by 1 so we can assign chars into the next buffer index
         lenTracker++;
@@ -42,6 +42,7 @@ int setup_buff(char *buff, char *user_str, int len){
         buff--;
         lenTracker--;
     }
+    //printf("len tracker %d\n", lenTracker);
     while(lenTracker < len){ //this while loop basically adds '.' until lentracker is the same length as BUFFER_SZ
         *buff = '.'; 
         buff++;
@@ -135,11 +136,11 @@ void wordPrint(char* buff, int len,  int str_len){
     printf("Number of words returned: %d\n",wc);
 }
 
-void replace(char* buff, int str_len, char* targetWord, char* replacement ){
+int replace(char* buff, int str_len, char* targetWord, char* replacement ){
     //printf("Modified Word: ");
     int currentLen = 0;
     int targetWordStart;
-    int targetWordEnd;
+    int targetWordEnd = 0;
     char *tempBuff = buff;
     char *afterReplacement = buff + (str_len-1);
     char *afterReplacement2 = buff;
@@ -158,7 +159,6 @@ void replace(char* buff, int str_len, char* targetWord, char* replacement ){
                 targetWordEnd = currentLen;
                 targetWordStart = targetWordEnd - match;
                 firstOccurance = 1;
-
             }
             tempBuff++;
             target++;
@@ -168,11 +168,15 @@ void replace(char* buff, int str_len, char* targetWord, char* replacement ){
         tempBuff++;
         currentLen++;
     }
+    //printf("end found at %d\n",currentLen);
+    if(matchWordLen == 0){ //exits and gives -1 if the target word is not found
+        exit(-1);
+    }
     int i = 0;
     int replaceWordLen = 0;
     char temp;
     while(i < targetWordStart){
-        //printf("%c",*buff);
+    //    printf("%c",*buff);
         buff++;
         i++;
     }
@@ -180,21 +184,19 @@ void replace(char* buff, int str_len, char* targetWord, char* replacement ){
         replacement++;
         replaceWordLen++;
     }
-    //printf("len of target word %d\n", matchWordLen+1);
-    //printf("len of replace word %d\n", replaceWordLen - (matchWordLen+1));
     int difference = replaceWordLen - (matchWordLen+1);
     int replacementWordEnd = targetWordEnd + difference;
-    //printf("strlen %d\n", str_len - replacementWordEnd);
-    //printf("end index of replacement word %d\n", targetWordEnd + difference);
-    //printf("shifted space %d\n", (str_len + difference) - replacementWordEnd );
     int shifting = (str_len + difference) - replacementWordEnd; 
     int secondLen = 0;
-    if(difference >= 0){
+    //printf("difference %d\n",difference);
+    //printf("target %d\n",targetWordEnd);
+    //printf("replacementWordEnd:%d\n",replacementWordEnd);
+    //printf("shifting %d\n",shifting);
+    if(difference >= 0 && firstOccurance == 1){
         while(secondLen < shifting){
             //printf("%c",*afterReplacement);
             temp = *afterReplacement;
             *(afterReplacement + difference) = temp;
-            //*afterReplacement = ' ';
             afterReplacement--;
             secondLen++;
         }
@@ -208,7 +210,7 @@ void replace(char* buff, int str_len, char* targetWord, char* replacement ){
             replacement++;
             buff++;
         }
-    }else{
+    }else if(difference > 0 && firstOccurance == 1){
         afterReplacement2+=(replacementWordEnd - difference);
         int k = 0;
         while(k < replaceWordLen){
@@ -229,11 +231,11 @@ void replace(char* buff, int str_len, char* targetWord, char* replacement ){
         }
         //printf("\ndifference is negative\n");
     }
-    while(*finalBuff != '.'){
+    //while(*finalBuff != '.'){
         //printf("%c",*finalBuff);
-        finalBuff++;
-    }
-    //printf("\n");
+    //    finalBuff++;
+    //}
+    return 0;
 }
 
 //ADD OTHER HELPER FUNCTIONS HERE FOR OTHER REQUIRED PROGRAM OPTIONS
@@ -350,3 +352,5 @@ int main(int argc, char *argv[]){
 //          the buff variable will have exactly 50 bytes?
 //  
 //          PLACE YOUR ANSWER HERE
+//   Answer: its good to have both pointer and buffer size because like our assignment here we can track
+//           where we are on the buffer and where it ends since the buffer here has no terminating character / '\0'.
