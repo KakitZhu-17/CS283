@@ -48,6 +48,7 @@ int setup_buff(char *buff, char *user_str, int len){
         buff++;
         lenTracker++;
     }
+
     return strLenTracker; //for now just so the code compiles. 
 }
 
@@ -147,36 +148,38 @@ int replace(char* buff, int str_len, char* targetWord, char* replacement ){
     char *finalBuff = buff;
     int matchWordLen = 0;
     int firstOccurance = 0;
-    while(*tempBuff != '.'){
+    while(currentLen <= 50){
         char *target = targetWord;
         int match = 0;
         while(*tempBuff == *target && firstOccurance == 0){
-            //printf("%c == %c\n", *buff,*target);
             if((*(tempBuff+1) == ' '|| *(tempBuff+1) == '.') && *(target+1) == '\0'){
-                //printf("match %d\n",match);
-                //printf("end found at %d\n",currentLen);
                 matchWordLen = match;
                 targetWordEnd = currentLen;
                 targetWordStart = targetWordEnd - match;
                 firstOccurance = 1;
             }
+            //printf("%c",*tempBuff);
             tempBuff++;
             target++;
             currentLen++;
             match++;
         }
+        //printf("%c",*tempBuff);
         tempBuff++;
         currentLen++;
     }
-    //printf("end found at %d\n",currentLen);
+    //printf("\n%d\n",matchWordLen);
     if(matchWordLen == 0){ //exits and gives -1 if the target word is not found
+        //printf("\ncheck2\n");
         exit(-1);
+        //return -1;
     }
+    //printf("\ncheck\n");
     int i = 0;
     int replaceWordLen = 0;
     char temp;
     while(i < targetWordStart){
-    //    printf("%c",*buff);
+        //printf("%c",*buff);
         buff++;
         i++;
     }
@@ -192,7 +195,7 @@ int replace(char* buff, int str_len, char* targetWord, char* replacement ){
     //printf("target %d\n",targetWordEnd);
     //printf("replacementWordEnd:%d\n",replacementWordEnd);
     //printf("shifting %d\n",shifting);
-    if(difference >= 0 && firstOccurance == 1){
+    if(difference >= 0){
         while(secondLen < shifting){
             //printf("%c",*afterReplacement);
             temp = *afterReplacement;
@@ -210,8 +213,9 @@ int replace(char* buff, int str_len, char* targetWord, char* replacement ){
             replacement++;
             buff++;
         }
-    }else if(difference > 0 && firstOccurance == 1){
-        afterReplacement2+=(replacementWordEnd - difference);
+    }else if(difference < 0){
+        int shiftingPoint = replacementWordEnd - difference;
+        afterReplacement2+=shiftingPoint;
         int k = 0;
         while(k < replaceWordLen){
             replacement--;
@@ -224,17 +228,11 @@ int replace(char* buff, int str_len, char* targetWord, char* replacement ){
             secondLen++;
         }   
         while(*replacement != '\0'){
-        //    printf("%c , %c|",*replacement,*buff);
             *buff = *replacement;
             replacement++;
             buff++;
         }
-        //printf("\ndifference is negative\n");
     }
-    //while(*finalBuff != '.'){
-        //printf("%c",*finalBuff);
-    //    finalBuff++;
-    //}
     return 0;
 }
 
@@ -316,7 +314,7 @@ int main(int argc, char *argv[]){
             break;
 
         case 'w':
-            if(user_str_len < BUFFER_SZ){
+            if(user_str_len <= BUFFER_SZ){
                 wordPrint(buff,BUFFER_SZ,user_str_len);
             }
             else{
