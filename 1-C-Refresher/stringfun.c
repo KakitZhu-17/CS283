@@ -18,17 +18,16 @@ int  count_words(char *, int, int);
 int setup_buff(char *buff, char *user_str, int len){
     //TODO: #4:  Implement the setup buff as per the directions
     int strLenTracker = 0;
-    int lenTracker = 0; //we will use this to track the length and make sure there is a correct ammount of '.' along with checking if the input string is bigger than BUFFER_SZ
-    while(*user_str == ' ' && *user_str != '\0' ){//if there white space at the very beginning of the user inputted string then this will iterate forward until there is none
+    int lenTracker = 0; //we will use this to track the current length and make sure there is a correct ammount of '.' along with checking if the input string is bigger than BUFFER_SZ
+    while(*user_str == ' ' && *user_str != '\0' ){//if there white space at the very beginning of the user inputed string then this will iterate forward until there is a non white space
         user_str++;
     }
     while(*user_str != '\0'){
-        if(*user_str == ' '){ //this detects if the character is a white space
+        if(*user_str == ' '){
             while(*(user_str+1) == ' '){ //this detects if there is a duplicate white space and iterates through the string until it reaches a non whitespace 
                 user_str++;
             }
         }
-        //printf("%c",*user_str);
         *buff = *user_str; //this adds/copies the user string character into the buffer
         strLenTracker++; //increments up the strLenTracker variable
         user_str++; //incremnets up by one to move onto the next char
@@ -43,7 +42,7 @@ int setup_buff(char *buff, char *user_str, int len){
         lenTracker--;
     }
     //printf("len tracker %d\n", lenTracker);
-    while(lenTracker < len){ //this while loop basically adds '.' until lentracker is the same length as BUFFER_SZ
+    while(lenTracker < len){ //this while loop basically adds '.' to the rest of the buffer
         *buff = '.'; 
         buff++;
         lenTracker++;
@@ -70,57 +69,51 @@ void usage(char *exename){
 int count_words(char *buff, int len, int str_len){
     int i = 0;
     int WordTracker = 0;
-    while(i < len){
-        //printf("%c",*buff);
+    while(i < len){ //this whole while statement iterates through the buffer and uses whitespace and '.' to track the end of the word 
         if((*buff == ' ' || *buff == '.') && i < str_len-1){
-            //printf("%c",*buff);
             WordTracker++;
         }
         buff++;
         i++;
     }
     WordTracker++;
-    //printf("\n");
     return WordTracker;
 }
 
 void strReversed(char *buff,int len,int str_len){
-    char *strBegin = buff;
+    char *strBegin = buff;  
     char *strEnd = buff + (str_len -1);
     int begintracker = 0;
     int endtracker = str_len;
-    char temp;
-    while(begintracker != endtracker){
+    char temp; //a tempory char to help with swapping
+    while(begintracker != endtracker){ //this while statements swaps the front chars with the back chars until they reach around the middle of the buffer
         temp = *strBegin;
         *strBegin = *strEnd;
         *strEnd = temp;
+        
         strBegin++;
         strEnd--;
         begintracker++;
         endtracker--;
     }
-    //printf("beginT %d  endT%d",begintracker,endtracker);
-    //printf("Reversed String: ");
     int i = 0;
     while(i < len){
-        //printf("%c",*buff);
         buff++;
         i++;
     }
-    //printf("\n");
 }
 
 void wordPrint(char* buff, int len,  int str_len){
     printf("Word Print\n");
     printf("----------\n");
     int wc = count_words(buff,len,str_len);
-    int i = 0; //this is for keeping track of the word count
+    int i = 0; //this is for keeping track of the word count for the side (so basically 1. , 2. , 3. , etc)
     int j = 0; //this keeps track of where we are in the buffer
     int charCount = 0; 
     while(i < wc){
-        printf("%d. ",i+1); //prints the numbers
+        printf("%d. ",i+1); //prints the numbers on the side
         int wordLen = 0; //this is for tracking the length of the individual words
-        while((*buff != ' ') && j < str_len){
+        while((*buff != ' ') && j < str_len){//this while loop prints the individual words and stops whenever there is a white space or if we are beyond the length of the inputed string
             printf("%c",*buff);
             wordLen++;
             buff++;
@@ -130,56 +123,48 @@ void wordPrint(char* buff, int len,  int str_len){
         printf("(%d)",wordLen);
         buff++;
         j++;
-        printf("\n");
+        printf("\n");//this separates the words
         i++;
     }
     printf("\n");
     printf("Number of words returned: %d\n",wc);
 }
 
-int replace(char* buff, int str_len, char* targetWord, char* replacement ){
-    //printf("Modified Word: ");
+int replace(char* buff,int len, int str_len, char* targetWord, char* replacement ){
     int currentLen = 0;
-    int targetWordStart;
-    int targetWordEnd = 0;
-    char *tempBuff = buff;
-    char *afterReplacement = buff + (str_len-1);
-    char *afterReplacement2 = buff;
-    char *finalBuff = buff;
+    int targetWordStart; //tracks the pointer/location of the word we want to find and replace begins on
+    int targetWordEnd = 0; //this tracks the end of the word we want to replace
+    char *tempBuff = buff; //used to find the word we want to replace
+    char *afterReplacement = buff + (str_len-1); //track the end of the string
+    char *afterReplacement2 = buff; 
     int matchWordLen = 0;
-    int firstOccurance = 0;
-    while(currentLen <= 50){
+    int firstOccurance = 0;//this acts like a boolean and makes sure we only change the first instance of the word
+    while(currentLen <= len){ // this entire while loop is for finding the beginning and end of the word we want to replace
         char *target = targetWord;
         int match = 0;
         while(*tempBuff == *target && firstOccurance == 0){
-            if((*(tempBuff+1) == ' '|| *(tempBuff+1) == '.') && *(target+1) == '\0'){
+            if((*(tempBuff+1) == ' '|| *(tempBuff+1) == '.' || currentLen+1 == str_len) && *(target+1) == '\0'){ //genral idea is that if this finds the end of the word we want to replace then it will know where it begins and ends along with how long it is
                 matchWordLen = match;
                 targetWordEnd = currentLen;
                 targetWordStart = targetWordEnd - match;
                 firstOccurance = 1;
             }
-            //printf("%c",*tempBuff);
             tempBuff++;
             target++;
             currentLen++;
             match++;
         }
-        //printf("%c",*tempBuff);
         tempBuff++;
         currentLen++;
     }
-    //printf("\n%d\n",matchWordLen);
     if(matchWordLen == 0){ //exits and gives -1 if the target word is not found
-        //printf("\ncheck2\n");
         exit(-1);
-        //return -1;
     }
-    //printf("\ncheck\n");
+
     int i = 0;
     int replaceWordLen = 0;
     char temp;
     while(i < targetWordStart){
-        //printf("%c",*buff);
         buff++;
         i++;
     }
@@ -187,47 +172,44 @@ int replace(char* buff, int str_len, char* targetWord, char* replacement ){
         replacement++;
         replaceWordLen++;
     }
-    int difference = replaceWordLen - (matchWordLen+1);
-    int replacementWordEnd = targetWordEnd + difference;
-    int shifting = (str_len + difference) - replacementWordEnd; 
+    int difference = replaceWordLen - (matchWordLen+1); //this tracks if the word we want to replace is bigger or smaller than the replacement word
+    int replacementWordEnd = targetWordEnd + difference;  
+    int shifting = (str_len + difference) - replacementWordEnd; //this tells us how many words we should shift upor down depending on the diffference calculated above
     int secondLen = 0;
-    //printf("difference %d\n",difference);
-    //printf("target %d\n",targetWordEnd);
-    //printf("replacementWordEnd:%d\n",replacementWordEnd);
-    //printf("shifting %d\n",shifting);
-    if(difference >= 0){
-        while(secondLen < shifting){
-            //printf("%c",*afterReplacement);
+   
+    if(difference >= 0){ // if the word we want to replace is smaller than the replacement word
+        while(secondLen < shifting){ //shifts shifting(the variable in line 177) amount of characters up by the difference
             temp = *afterReplacement;
             *(afterReplacement + difference) = temp;
             afterReplacement--;
             secondLen++;
         }
         int k = 0;
-        while(k < replaceWordLen){
+        while(k < replaceWordLen){ //this just undoes the iterating that happened above to get the value of replaceWordLen for our calculations
             replacement--;
             k++;
         }
-        while(*replacement != '\0'){
+        while(*replacement != '\0'){ //this adds the replacement words to our buffer after our shifting is done
             *buff = *replacement;
             replacement++;
             buff++;
         }
-    }else if(difference < 0){
-        int shiftingPoint = replacementWordEnd - difference;
+    }
+    else if(difference < 0){ // if the word we want to replace is bigger than the replacement word but functions similiarly to the loop above
+        int shiftingPoint = replacementWordEnd - difference; //this just tracks how 
         afterReplacement2+=shiftingPoint;
         int k = 0;
         while(k < replaceWordLen){
             replacement--;
             k++;
         }
-        while(secondLen < shifting+(matchWordLen+1)){
+        while(secondLen < shifting+(matchWordLen+1)){ //shifts shifting+(matchWordLen+1) amount of characters down by the difference
             temp = *afterReplacement2;
             *(afterReplacement2 + difference) = temp;
             afterReplacement2++;
             secondLen++;
         }   
-        while(*replacement != '\0'){
+        while(*replacement != '\0'){ //after the shifitng we add the replacement word into the buffer
             *buff = *replacement;
             replacement++;
             buff++;
@@ -248,9 +230,8 @@ int main(int argc, char *argv[]){
 
     //TODO:  #1. WHY IS THIS SAFE, aka what if arv[1] does not exist?
     //      PLACE A COMMENT BLOCK HERE EXPLAINING
-    // Answer: argv[1] is for getting the command line argument 
-    // in our case in this assignment it will be for getting the string we want to modify
-    // without it argv we cannot get the string we want to modify
+    // Answer: if argv[1] goes not exist then it should be still safe since we ahev argc < 2 as a condition which will exit if its true
+    //         but if we dont have argc < 2 then it maybe dangerous since we are accessing memory thats we dont own
     if ((argc < 2) || (*argv[1] != '-')){
         usage(argv[0]);
         exit(1);
@@ -269,7 +250,7 @@ int main(int argc, char *argv[]){
     //TODO:  #2 Document the purpose of the if statement below
     //      PLACE A COMMENT BLOCK HERE EXPLAINING
     // Answer: this code is checking if the argument count is less than 3. if it is less than three 
-    // then it will call the functions usage which prints out a message
+    //         then it will call the functions usage which prints out a message and exits.
     if (argc < 3){
         usage(argv[0]);
         exit(1);
@@ -283,13 +264,13 @@ int main(int argc, char *argv[]){
     // CODE GOES HERE FOR #3
     buff = malloc(BUFFER_SZ);
     if(buff == NULL){
-        printf("failed to allocate memory"); //this message will print if malloc fails
+        printf("failed to allocate memory\n"); //this message will print if malloc fails
         exit(99); //this will give a return code of 99
     }
 
     user_str_len = setup_buff(buff, input_string, BUFFER_SZ);     //see todos
     if (user_str_len < 0){
-        printf("Error setting up buffer, error = %d", user_str_len);
+        printf("Error setting up buffer, error = %d\n", user_str_len);
         exit(2);
     }
 
@@ -326,7 +307,7 @@ int main(int argc, char *argv[]){
             char *targetWord = argv[3];
             char *swapTo = argv[4];
             if(argc == 5){
-                replace(buff,user_str_len,targetWord,swapTo);
+                replace(buff,BUFFER_SZ,user_str_len,targetWord,swapTo);
             }
             else{
                 exit(-1);
