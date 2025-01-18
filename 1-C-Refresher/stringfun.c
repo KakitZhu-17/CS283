@@ -33,7 +33,7 @@ int setup_buff(char *buff, char *user_str, int len){
         user_str++; //incremnets up by one to move onto the next char
         buff++; //increments up by 1 so we can assign chars into the next buffer index
         lenTracker++;
-        if(lenTracker > len){
+        if(lenTracker > len){// if user supplied string is too long this will return -1
             return -1;
         }
     }
@@ -41,7 +41,7 @@ int setup_buff(char *buff, char *user_str, int len){
         buff--;
         lenTracker--;
     }
-    //printf("len tracker %d\n", lenTracker);
+    
     while(lenTracker < len){ //this while loop basically adds '.' to the rest of the buffer
         *buff = '.'; 
         buff++;
@@ -85,8 +85,8 @@ void strReversed(char *buff,int len,int str_len){
     char *strEnd = buff + (str_len -1);
     int begintracker = 0;
     int endtracker = str_len;
-    char temp; //a tempory char to help with swapping
-    while(begintracker != endtracker){ //this while statements swaps the front chars with the back chars until they reach around the middle of the buffer
+    char temp; //a temporary char varaible to help with swapping
+    while(begintracker != endtracker){ //this while statements swaps the front chars with the back chars until they reach around the middle of the string
         temp = *strBegin;
         *strBegin = *strEnd;
         *strEnd = temp;
@@ -132,7 +132,7 @@ void wordPrint(char* buff, int len,  int str_len){
 
 int replace(char* buff,int len, int str_len, char* targetWord, char* replacement ){
     int currentLen = 0;
-    int targetWordStart; //tracks the pointer/location of the word we want to find and replace begins on
+    int targetWordStart; //tracks the pointer/location of the char of the word we want to find and replace begins on
     int targetWordEnd = 0; //this tracks the end of the word we want to replace
     char *tempBuff = buff; //used to find the word we want to replace
     char *afterReplacement = buff + (str_len-1); //track the end of the string
@@ -143,7 +143,7 @@ int replace(char* buff,int len, int str_len, char* targetWord, char* replacement
         char *target = targetWord;
         int match = 0;
         while(*tempBuff == *target && firstOccurance == 0){
-            if((*(tempBuff+1) == ' '|| *(tempBuff+1) == '.' || currentLen+1 == str_len) && *(target+1) == '\0'){ //genral idea is that if this finds the end of the word we want to replace then it will know where it begins and ends along with how long it is
+            if((*(tempBuff+1) == ' '|| *(tempBuff+1) == '.' || currentLen+1 == str_len) && *(target+1) == '\0'){ //general idea is that if this finds the end of the word we want to replace then it will know where it begins and ends along with how long it is
                 matchWordLen = match;
                 targetWordEnd = currentLen;
                 targetWordStart = targetWordEnd - match;
@@ -174,7 +174,7 @@ int replace(char* buff,int len, int str_len, char* targetWord, char* replacement
     }
     int difference = replaceWordLen - (matchWordLen+1); //this tracks if the word we want to replace is bigger or smaller than the replacement word
     int replacementWordEnd = targetWordEnd + difference;  
-    int shifting = (str_len + difference) - replacementWordEnd; //this tells us how many words we should shift upor down depending on the diffference calculated above
+    int shifting = (str_len + difference) - replacementWordEnd; //this tells us how many words we should shift up or down depending on the difference calculated above
     int secondLen = 0;
    
     if(difference >= 0){ // if the word we want to replace is smaller than the replacement word
@@ -185,7 +185,7 @@ int replace(char* buff,int len, int str_len, char* targetWord, char* replacement
             secondLen++;
         }
         int k = 0;
-        while(k < replaceWordLen){ //this just undoes the iterating that happened above to get the value of replaceWordLen for our calculations
+        while(k < replaceWordLen){ //this just undoes the iterating that happened above (lines 171 - 174) to get the value of replaceWordLen for our calculations, so we can return to the beginning of the replacement word
             replacement--;
             k++;
         }
@@ -209,7 +209,7 @@ int replace(char* buff,int len, int str_len, char* targetWord, char* replacement
             afterReplacement2++;
             secondLen++;
         }   
-        while(*replacement != '\0'){ //after the shifitng we add the replacement word into the buffer
+        while(*replacement != '\0'){ //after the shifting we add the replacement word into the buffer
             *buff = *replacement;
             replacement++;
             buff++;
@@ -230,8 +230,8 @@ int main(int argc, char *argv[]){
 
     //TODO:  #1. WHY IS THIS SAFE, aka what if arv[1] does not exist?
     //      PLACE A COMMENT BLOCK HERE EXPLAINING
-    // Answer: if argv[1] goes not exist then it should be still safe since we ahev argc < 2 as a condition which will exit if its true
-    //         but if we dont have argc < 2 then it maybe dangerous since we are accessing memory thats we dont own
+    // Answer: if argv[1] does not exist then it should be still safe since we have argc < 2 as a condition which will exit if its true
+    //         but if we dont have argc < 2 then it maybe dangerous since we are could be accessing memory thats we dont own
     if ((argc < 2) || (*argv[1] != '-')){
         usage(argv[0]);
         exit(1);
@@ -250,7 +250,7 @@ int main(int argc, char *argv[]){
     //TODO:  #2 Document the purpose of the if statement below
     //      PLACE A COMMENT BLOCK HERE EXPLAINING
     // Answer: this code is checking if the argument count is less than 3. if it is less than three 
-    //         then it will call the functions usage which prints out a message and exits.
+    //         then it will call the functions usage which prints out a message and exits with a code of 1.
     if (argc < 3){
         usage(argv[0]);
         exit(1);
@@ -264,13 +264,12 @@ int main(int argc, char *argv[]){
     // CODE GOES HERE FOR #3
     buff = malloc(BUFFER_SZ);
     if(buff == NULL){
-        printf("failed to allocate memory\n"); //this message will print if malloc fails
         exit(99); //this will give a return code of 99
     }
 
     user_str_len = setup_buff(buff, input_string, BUFFER_SZ);     //see todos
     if (user_str_len < 0){
-        printf("Error setting up buffer, error = %d\n", user_str_len);
+        printf("Error setting up buffer, error = %d", user_str_len);
         exit(2);
     }
 
@@ -310,7 +309,7 @@ int main(int argc, char *argv[]){
                 replace(buff,BUFFER_SZ,user_str_len,targetWord,swapTo);
             }
             else{
-                exit(-1);
+                exit(1);
             }
             break;
 
@@ -332,5 +331,5 @@ int main(int argc, char *argv[]){
 //          the buff variable will have exactly 50 bytes?
 //  
 //          PLACE YOUR ANSWER HERE
-//   Answer: its good to have both pointer and buffer size because like our assignment here we can track
-//           where we are on the buffer and where it ends since the buffer here has no terminating character / '\0'.
+//   Answer: its good to have both buffer pointer and length because like our assignment here we can track
+//           where we are on the buffer and where it ends since the buffer here has no terminating character '\0'.
