@@ -86,7 +86,7 @@ void strReversed(char *buff,int len,int str_len){
     int begintracker = 0;
     int endtracker = str_len;
     char temp; //a temporary char varaible to help with swapping
-    while(begintracker != endtracker){ //this while statements swaps the front chars with the back chars until they reach around the middle of the string
+    while(begintracker < endtracker){ //this while statements swaps the front chars with the back chars until they reach around the middle of the string
         temp = *strBegin;
         *strBegin = *strEnd;
         *strEnd = temp;
