@@ -63,6 +63,9 @@ int get_student(int fd, int id, student_t *s){
     char checkIndex;
     lseek(fd,offset,SEEK_SET);
     read(fd, &checkIndex,sizeof(char));
+    if(checkIndex == '0'){
+        return SRCH_NOT_FOUND;
+    }
     lseek(fd,offset,SEEK_SET);
     read(fd, s, sizeof(student_t));
     return NO_ERROR;
@@ -217,7 +220,28 @@ int count_db_records(int fd){
  *            
  */
 int print_db(int fd){
-    printf(M_NOT_IMPL);
+    int i= 1;
+    //int total = 0;
+    char checkIndex;
+    student_t s ={0};
+    ssize_t isEmptyFileCheck = read(fd,&checkIndex,sizeof(char));
+    if(isEmptyFileCheck == 0){
+        printf("Database contains no student records.");
+        return 0;
+    }
+    printf(STUDENT_PRINT_HDR_STRING,"ID","FIRST NAME","LAST_NAME","GPA");
+    while(i < MAX_STD_ID){
+        lseek(fd, i * sizeof(student_t),SEEK_SET);
+        read(fd,&checkIndex,sizeof(char));
+        lseek(fd, i * sizeof(student_t),SEEK_SET);
+        read(fd, &s, sizeof(student_t));
+        if(checkIndex != '0'){
+            float trueGpa = s.gpa/100.0;
+            printf(STUDENT_PRINT_FMT_STRING,s.id,s.fname,s.lname,trueGpa);
+        }
+        i++;
+    }
+
     return NOT_IMPLEMENTED_YET;
 }
 
