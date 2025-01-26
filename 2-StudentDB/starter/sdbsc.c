@@ -182,8 +182,28 @@ int del_student(int fd, int id){
  *            
  */
 int count_db_records(int fd){
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    int i= 1;
+    int total = 0;
+    char checkIndex;
+    ssize_t isEmptyFileCheck = read(fd,&checkIndex,sizeof(char));
+    if(isEmptyFileCheck == 0){
+        printf(M_DB_EMPTY);
+        return 0;
+    }
+    while(i < MAX_STD_ID){
+        lseek(fd, i * sizeof(student_t),SEEK_SET);
+        read(fd,&checkIndex,sizeof(char));
+        //printf("this is %c\n",checkIndex);
+        if(checkIndex != '0'){
+            total++;
+        }
+        i++;
+    }
+    if(total == 0){
+        printf(M_DB_EMPTY);
+    }
+    printf(M_DB_RECORD_CNT,total);
+    return total;
 }
 
 /*
