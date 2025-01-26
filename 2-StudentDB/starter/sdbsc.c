@@ -59,7 +59,13 @@ int open_db(char *dbFile, bool should_truncate){
  *  console:  Does not produce any console I/O used by other functions
  */
 int get_student(int fd, int id, student_t *s){
-    return NOT_IMPLEMENTED_YET;
+    int offset = id * sizeof(student_t);
+    char checkIndex;
+    lseek(fd,offset,SEEK_SET);
+    read(fd, &checkIndex,sizeof(char));
+    lseek(fd,offset,SEEK_SET);
+    read(fd, s, sizeof(student_t));
+    return NO_ERROR;
 }
 
 /*
@@ -88,8 +94,25 @@ int get_student(int fd, int id, student_t *s){
  *            
  */
 int add_student(int fd, int id, char *fname, char *lname, int gpa){
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    student_t addStudent;
+    addStudent.id = id;
+    memcpy(addStudent.fname,fname,sizeof(addStudent.fname));
+    memcpy(addStudent.lname,lname,sizeof(addStudent.lname));
+    //int modifiedGpa = gpa * 100;
+    addStudent.gpa = gpa;
+    
+    char checkIndex;
+    int offset = id * sizeof(student_t);
+    lseek(fd,offset,SEEK_SET);
+    read(fd,&checkIndex,sizeof(char));
+    if(checkIndex != '0'){
+        printf(M_ERR_DB_ADD_DUP,id);
+        return ERR_DB_OP;
+    }
+    lseek(fd,offset,SEEK_SET);
+    write(fd,&addStudent,sizeof(student_t));
+    printf(M_STD_ADDED,id);
+    return NO_ERROR;
 }
 
 /*
@@ -115,8 +138,20 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa){
  *            
  */
 int del_student(int fd, int id){
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    int offset = id * sizeof(student_t);
+    char checkIndex;
+    char zeros[sizeof(student_t)];
+    memset(zeros,'0',sizeof(student_t));
+    lseek(fd,offset,SEEK_SET);
+    read(fd,&checkIndex,sizeof(char));
+    if(checkIndex == '0'){
+        printf(M_STD_NOT_FND_MSG,id);
+        return ERR_DB_OP;
+    }
+    lseek(fd,offset,SEEK_SET);
+    write(fd,zeros,sizeof(student_t));
+    printf(M_STD_DEL_MSG,id);
+    return NO_ERROR;
 }
 
 /*
@@ -215,7 +250,10 @@ int print_db(int fd){
  *            
  */
 void print_student(student_t *s){
-    printf(M_NOT_IMPL);
+    float trueGpa = s->gpa/100.0;
+    printf(STUDENT_PRINT_HDR_STRING, "ID","FIRST NAME", "LAST_NAME", "GPA");
+    printf(STUDENT_PRINT_FMT_STRING,s->id,s->fname,s->lname,trueGpa);
+    //printf(M_NOT_IMPL);
 }
 
 /*
@@ -361,6 +399,25 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAIL_DB);
     }
 
+
+    char getFirstItem[1];
+    //char getCharInPosition;
+    ssize_t isEmptyFileCheck = read(fd,getFirstItem,sizeof(char));
+    if(isEmptyFileCheck == 0){
+        //printf("this is a empty file loading zeros\n");
+        char fillZeros[(sizeof(student_t)* MAX_STD_ID)-sizeof(student_t)];
+        memset(fillZeros,'0',(sizeof(student_t)* MAX_STD_ID)-sizeof(student_t));
+        int offset = sizeof(student_t);
+        lseek(fd, offset,SEEK_SET);
+        write(fd,fillZeros,(sizeof(student_t)*MAX_STD_ID)-sizeof(student_t));
+    }
+    //else if(isEmptyFileCheck > 0){
+    //    int offset = sizeof(student_t);
+    //    lseek(fd, offset,SEEK_SET);
+    //    read(fd,&getCharInPosition,sizeof(char));
+    //    printf("this is %c\n",getCharInPosition);
+    //}
+
     //set rc to the return code of the operation to ensure the program
     //use that to determine the proper exit_code.  Look at the header
     //sdbsc.h for expected values. 
@@ -433,8 +490,8 @@ int main(int argc, char *argv[]){
                 break;
             }
             id = atoi(argv[2]);
+            //printf("%d, %d, %s , %s, %d\n",student->id,student->fname,student->lname,student->gpa);
             rc = get_student(fd, id, &student);
-
            
             switch (rc){
                 case NO_ERROR:
