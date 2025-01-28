@@ -62,9 +62,12 @@ int get_student(int fd, int id, student_t *s){
     int offset = id * sizeof(student_t);
     char checkIndex;
     lseek(fd,offset,SEEK_SET);
-    read(fd, &checkIndex,sizeof(char));
+    ssize_t readFile = read(fd, &checkIndex,sizeof(char));
     if(checkIndex == '0'){
         return SRCH_NOT_FOUND;
+    }
+    if(readFile == -1){
+        return ERR_DB_FILE;
     }
     lseek(fd,offset,SEEK_SET);
     read(fd, s, sizeof(student_t));
@@ -101,20 +104,27 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa){
     addStudent.id = id;
     memcpy(addStudent.fname,fname,sizeof(addStudent.fname));
     memcpy(addStudent.lname,lname,sizeof(addStudent.lname));
-    //int modifiedGpa = gpa * 100;
     addStudent.gpa = gpa;
     
     char checkIndex;
     int offset = id * sizeof(student_t);
     lseek(fd,offset,SEEK_SET);
-    read(fd,&checkIndex,sizeof(char));
+    ssize_t readFile = read(fd,&checkIndex,sizeof(char));
     if(checkIndex != '0'){
         printf(M_ERR_DB_ADD_DUP,id);
         return ERR_DB_OP;
     }
+    if(readFile == -1){
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    }
     lseek(fd,offset,SEEK_SET);
-    write(fd,&addStudent,sizeof(student_t));
-    printf(M_STD_ADDED,id);
+    ssize_t writeFile = write(fd,&addStudent,sizeof(student_t));
+    if(writeFile == -1){
+        printf(M_ERR_DB_WRITE);
+    }else{
+        printf(M_STD_ADDED,id);
+    }
     return NO_ERROR;
 }
 
@@ -146,14 +156,22 @@ int del_student(int fd, int id){
     char zeros[sizeof(student_t)];
     memset(zeros,'0',sizeof(student_t));
     lseek(fd,offset,SEEK_SET);
-    read(fd,&checkIndex,sizeof(char));
+    ssize_t readFile = read(fd,&checkIndex,sizeof(char));
     if(checkIndex == '0'){
         printf(M_STD_NOT_FND_MSG,id);
         return ERR_DB_OP;
     }
+    if(readFile == -1){
+        return ERR_DB_FILE;
+    }
     lseek(fd,offset,SEEK_SET);
-    write(fd,zeros,sizeof(student_t));
-    printf(M_STD_DEL_MSG,id);
+    ssize_t writeFile = write(fd,zeros,sizeof(student_t));
+    if(writeFile == -1){
+        printf(M_ERR_DB_WRITE);
+    }
+    else{
+        printf(M_STD_DEL_MSG,id);
+    }
     return NO_ERROR;
 }
 
@@ -186,6 +204,9 @@ int count_db_records(int fd){
     int total = 0;
     char checkIndex;
     ssize_t isEmptyFileCheck = read(fd,&checkIndex,sizeof(char));
+    if(isEmptyFileCheck == -1){
+        return ERR_DB_FILE;
+    }
     if(isEmptyFileCheck == 0){
         printf(M_DB_EMPTY);
         return 0;
@@ -245,6 +266,9 @@ int print_db(int fd){
     char checkIndex;
     student_t s ={0};
     ssize_t isEmptyFileCheck = read(fd,&checkIndex,sizeof(char));
+    if(isEmptyFileCheck == -1){
+        return ERR_DB_FILE;
+    }
     if(isEmptyFileCheck == 0){
         printf("Database contains no student records.");
         return 0;
@@ -262,7 +286,7 @@ int print_db(int fd){
         i++;
     }
 
-    return NOT_IMPLEMENTED_YET;
+    return NO_ERROR;
 }
 
 /*
