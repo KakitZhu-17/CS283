@@ -63,14 +63,14 @@ int get_student(int fd, int id, student_t *s){
     char checkIndex;
     lseek(fd,offset,SEEK_SET);
     ssize_t readFile = read(fd, &checkIndex,sizeof(char));
-    if(checkIndex == '0'){
+    if(checkIndex == '0'){ //if the index/byte is a 0 then it will return a SRCH_NOT_FOUND
         return SRCH_NOT_FOUND;
     }
     if(readFile == -1){
         return ERR_DB_FILE;
     }
     lseek(fd,offset,SEEK_SET);
-    read(fd, s, sizeof(student_t));
+    read(fd, s, sizeof(student_t)); //this is our way of getting information of the student to store in our struct
     return NO_ERROR;
 }
 
@@ -100,7 +100,7 @@ int get_student(int fd, int id, student_t *s){
  *            
  */
 int add_student(int fd, int id, char *fname, char *lname, int gpa){
-    student_t addStudent;
+    student_t addStudent; //basic intialization
     addStudent.id = id;
     memcpy(addStudent.fname,fname,sizeof(addStudent.fname));
     memcpy(addStudent.lname,lname,sizeof(addStudent.lname));
@@ -110,7 +110,7 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa){
     int offset = id * sizeof(student_t);
     lseek(fd,offset,SEEK_SET);
     ssize_t readFile = read(fd,&checkIndex,sizeof(char));
-    if(checkIndex != '0'){
+    if(checkIndex != '0'){ //if the index we calulated is not a zero then we know it this index already has a student
         printf(M_ERR_DB_ADD_DUP,id);
         return ERR_DB_OP;
     }
@@ -119,7 +119,7 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa){
         return ERR_DB_FILE;
     }
     lseek(fd,offset,SEEK_SET);
-    ssize_t writeFile = write(fd,&addStudent,sizeof(student_t));
+    ssize_t writeFile = write(fd,&addStudent,sizeof(student_t)); //this adds the actual struct into our database file
     if(writeFile == -1){
         printf(M_ERR_DB_WRITE);
     }else{
@@ -153,11 +153,11 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa){
 int del_student(int fd, int id){
     int offset = id * sizeof(student_t);
     char checkIndex;
-    char zeros[sizeof(student_t)];
-    memset(zeros,'0',sizeof(student_t));
+    char zeros[sizeof(student_t)]; //a array to store our zeros
+    memset(zeros,'0',sizeof(student_t));//fills array with zeros
     lseek(fd,offset,SEEK_SET);
     ssize_t readFile = read(fd,&checkIndex,sizeof(char));
-    if(checkIndex == '0'){
+    if(checkIndex == '0'){ //if zero then this index is empty/student is not in database
         printf(M_STD_NOT_FND_MSG,id);
         return ERR_DB_OP;
     }
@@ -165,7 +165,7 @@ int del_student(int fd, int id){
         return ERR_DB_FILE;
     }
     lseek(fd,offset,SEEK_SET);
-    ssize_t writeFile = write(fd,zeros,sizeof(student_t));
+    ssize_t writeFile = write(fd,zeros,sizeof(student_t)); //fills the index/location with zeros to delete the student
     if(writeFile == -1){
         printf(M_ERR_DB_WRITE);
     }
@@ -211,10 +211,9 @@ int count_db_records(int fd){
         printf(M_DB_EMPTY);
         return 0;
     }
-    while(i < MAX_STD_ID){
+    while(i < MAX_STD_ID){ //iterates through our indexes until we reach the max amount of possible indexs/ids if any of them are not zero then we increment i up by 1
         lseek(fd, i * sizeof(student_t),SEEK_SET);
         read(fd,&checkIndex,sizeof(char));
-        //printf("this is %c\n",checkIndex);
         if(checkIndex != '0'){
             total++;
         }
@@ -262,9 +261,8 @@ int count_db_records(int fd){
  */
 int print_db(int fd){
     int i= 1;
-    //int total = 0;
     char checkIndex;
-    student_t s ={0};
+    student_t student ={0}; //intializes struct
     ssize_t isEmptyFileCheck = read(fd,&checkIndex,sizeof(char));
     if(isEmptyFileCheck == -1){
         return ERR_DB_FILE;
@@ -274,14 +272,13 @@ int print_db(int fd){
         return 0;
     }
     printf(STUDENT_PRINT_HDR_STRING,"ID","FIRST NAME","LAST_NAME","GPA");
-    while(i < MAX_STD_ID){
+    while(i < MAX_STD_ID){ //same idea as count_db() we iterating through our file by all possible ids and and if they are not zero(this is in the get_student() function) then we print them out
         lseek(fd, i * sizeof(student_t),SEEK_SET);
         read(fd,&checkIndex,sizeof(char));
-        lseek(fd, i * sizeof(student_t),SEEK_SET);
-        read(fd, &s, sizeof(student_t));
-        if(checkIndex != '0'){
-            float trueGpa = s.gpa/100.0;
-            printf(STUDENT_PRINT_FMT_STRING,s.id,s.fname,s.lname,trueGpa);
+        int getStudent = get_student(fd,i,&student);
+        if(getStudent == NO_ERROR){
+            float trueGpa = student.gpa/100.0;
+            printf(STUDENT_PRINT_FMT_STRING,student.id,student.fname,student.lname,trueGpa);
         }
         i++;
     }
@@ -321,7 +318,6 @@ void print_student(student_t *s){
     float trueGpa = s->gpa/100.0;
     printf(STUDENT_PRINT_HDR_STRING, "ID","FIRST NAME", "LAST_NAME", "GPA");
     printf(STUDENT_PRINT_FMT_STRING,s->id,s->fname,s->lname,trueGpa);
-    //printf(M_NOT_IMPL);
 }
 
 /*
@@ -467,24 +463,16 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAIL_DB);
     }
 
-
-    char getFirstItem[1];
-    //char getCharInPosition;
+    char getFirstItem[1]; //this is a buffer for our read() below
     ssize_t isEmptyFileCheck = read(fd,getFirstItem,sizeof(char));
-    if(isEmptyFileCheck == 0){
-        //printf("this is a empty file loading zeros\n");
-        char fillZeros[(sizeof(student_t)* MAX_STD_ID)-sizeof(student_t)];
-        memset(fillZeros,'0',(sizeof(student_t)* MAX_STD_ID)-sizeof(student_t));
+    if(isEmptyFileCheck == 0){ //we can tell the file is empty if the our read()/isEmptyFileCheck returns 0
+        int totalZeros = (sizeof(student_t)* MAX_STD_ID)-sizeof(student_t);// the rest of the code here fills the file with zeros starting with the 64th byte
+        char fillZeros[totalZeros];
+        memset(fillZeros,'0',totalZeros);
         int offset = sizeof(student_t);
         lseek(fd, offset,SEEK_SET);
-        write(fd,fillZeros,(sizeof(student_t)*MAX_STD_ID)-sizeof(student_t));
+        write(fd,fillZeros,totalZeros);
     }
-    //else if(isEmptyFileCheck > 0){
-    //    int offset = sizeof(student_t);
-    //    lseek(fd, offset,SEEK_SET);
-    //    read(fd,&getCharInPosition,sizeof(char));
-    //    printf("this is %c\n",getCharInPosition);
-    //}
 
     //set rc to the return code of the operation to ensure the program
     //use that to determine the proper exit_code.  Look at the header
