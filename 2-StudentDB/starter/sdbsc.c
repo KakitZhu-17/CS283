@@ -63,14 +63,14 @@ int get_student(int fd, int id, student_t *s){
     char checkIndex;
     lseek(fd,offset,SEEK_SET);
     ssize_t readFile = read(fd, &checkIndex,sizeof(char));
-    if(checkIndex == '0' || checkIndex == 0){ //if the index/byte is a 0 or NUL then it will return a SRCH_NOT_FOUND
+    if(checkIndex == '0' || checkIndex == 0){ //if the index/byte is a 0 or NUL then it will return a SRCH_NOT_FOUND 
         return SRCH_NOT_FOUND;
     }
     if(readFile == -1){
         return ERR_DB_FILE;
     }
     lseek(fd,offset,SEEK_SET);
-    read(fd, s, sizeof(student_t)); //this is our way of getting information of the student to store in our struct
+    read(fd, s, sizeof(student_t)); //gets information of the student to store in struct
     return NO_ERROR;
 }
 
@@ -112,7 +112,7 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa){
     ssize_t readFile = read(fd,&checkIndex,sizeof(char));
 
 
-    if(checkIndex != '0'){ //if the index we calulated is not a zero then we know it this index already has a student
+    if(checkIndex != '0'){ //if the index we calulated is not a zero then we know it this index already has a student (similar code below on later functions)
         printf(M_ERR_DB_ADD_DUP,id);
         return ERR_DB_OP;
     }
@@ -123,11 +123,11 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa){
     }
 
     int i = 1;
-    char zeros[sizeof(student_t)]; //a array to store our zeros
+    char zeros[sizeof(student_t)]; //a array to store our zeros 
     memset(zeros,'0',sizeof(student_t));//fills array with zeros
     char check;
 
-    while(i < id){ //iterates through the file until we reach the index we want and if it passes any NUL chars then it makes them the 0.
+    while(i < id){ //iterates through the file until we reach the index we want and if it passes any NUL chars then it makes them 0.
         lseek(fd,i*sizeof(student_t),SEEK_SET);
         read(fd,&check,sizeof(char));
             if(check == 0){
@@ -172,11 +172,13 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa){
 int del_student(int fd, int id){
     int offset = id * sizeof(student_t);
     char checkIndex;
-    char zeros[sizeof(student_t)]; //once again a array to store our zeros
-    memset(zeros,'0',sizeof(student_t));//fills array with zeros
+
+    char zeros[sizeof(student_t)]; 
+    memset(zeros,'0',sizeof(student_t));
+
     lseek(fd,offset,SEEK_SET);
     ssize_t readFile = read(fd,&checkIndex,sizeof(char));
-    if(checkIndex == '0' || checkIndex == 0){ //if zero or NUL then this index is empty/student is not in database
+    if(checkIndex == '0' || checkIndex == 0){ 
         printf(M_STD_NOT_FND_MSG,id);
         return ERR_DB_OP;
     }
@@ -240,7 +242,7 @@ int count_db_records(int fd){
         }
         i++;
     }
-    if(total == 0){ //this is just in case we delete all records bu tthe zeros still remain
+    if(total == 0){ //this is just in case we delete all records but the zeros still remain
         printf(M_DB_EMPTY);
     }
     printf(M_DB_RECORD_CNT,total);
@@ -507,7 +509,7 @@ int main(int argc, char *argv[]){
             id = atoi(argv[2]);
             gpa = atoi(argv[5]);
 
-            int offset = id * sizeof(student_t); //same idea as the delete function above with the zero array
+            int offset = id * sizeof(student_t);
             char zeros[sizeof(student_t)]; 
             memset(zeros,'0',sizeof(student_t));
             char check;

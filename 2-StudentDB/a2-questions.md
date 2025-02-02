@@ -102,11 +102,11 @@ Please answer the following questions and submit in your repo for the second ass
 
     - Please explain why the file size reported by the `ls` command was 128 bytes after adding student with ID=1, 256 after adding student with ID=3, and 4160 after adding the student with ID=64? 
 
-        > **ANSWER:** this may be due to how lseek and ls works. lseek goes to the byte you want to go to which could be EOF or beyond and ls reports the size as the byte we are accessing.
+        > **ANSWER:** this may be due to how lseek and ls works. lseek goes to the byte you want to go to which could be EOF or beyond and ls reports the size as the byte we are accessing or writing to.
 
     -   Why did the total storage used on the disk remain unchanged when we added the student with ID=1, ID=3, and ID=63, but increased from 4K to 8K when we added the student with ID=64? 
 
-        > **ANSWER:** it remains unchanged in the beginning becausee the disk doesn;t have to allocate space for ID =1 ,2, 3 but once we do 63 we are writing into a further(unallocated space) into the file which means the disk has to allocate space for it which causes the change in size.
+        > **ANSWER:** it remains unchanged in the beginning becausee the disk doesn't have to allocate that much space/memory for ID =1 ,2, 3 but once we do 64 we are writing into a much further(unallocated) space into the file which causes the disk to allocate much more space then ID 1,2,3 for it causing the change in size.
 
     - Now lets add one more student with a large student ID number  and see what happens:
 
@@ -119,4 +119,4 @@ Please answer the following questions and submit in your repo for the second ass
         ```
         We see from above adding a student with a very large student ID (ID=99999) increased the file size to 6400000 as shown by `ls` but the raw storage only increased to 12K as reported by `du`.  Can provide some insight into why this happened?
 
-        > **ANSWER:**  6400000 is the byte (or the estimation of it) that is accessed by lseek and so ls reports this because we are accessing and writing to this big byte. the storage increases to 12k is because we use lseek to write beyond the EOF / our intended limit so that memory and the disk has to allocate memory for that.
+        > **ANSWER:**  6400000 is the byte (or the estimation of it) that is accessed by lseek and so ls reports this because we are accessing and writing to this big byte. the storage increases to 12k is because we use lseek to write beyond the EOF which cause the disk to allocate memory for that.
