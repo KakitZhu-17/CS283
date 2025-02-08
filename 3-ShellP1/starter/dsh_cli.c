@@ -46,10 +46,26 @@
  */
 int main()
 {
-    char *cmd_buff;
+    char cmd_buff[SH_CMD_MAX];
     int rc = 0;
-    command_list_t clist;
-
-    printf(M_NOT_IMPL);
-    exit(EXIT_NOT_IMPL);
+    command_list_t clist = {0};
+    while(1){
+        printf("%s", SH_PROMPT);
+        if (fgets(cmd_buff, ARG_MAX, stdin) == NULL){
+            printf("\n");
+            break;
+        }
+        //remove the trailing \n from cmd_buff
+        cmd_buff[strcspn(cmd_buff,"\n")] = '\0';
+ 
+        //IMPLEMENT THE REST OF THE REQUIREMENTS
+        printf(CMD_OK_HEADER,rc);
+        printf("%s\n",cmd_buff);
+        
+        
+        if(strcmp(cmd_buff,"exit") == 0){
+            break;
+        }
+    }
+    exit(0);
 }
