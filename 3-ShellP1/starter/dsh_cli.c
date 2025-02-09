@@ -59,8 +59,7 @@ int main()
         cmd_buff[strcspn(cmd_buff,"\n")] = '\0';
  
         //IMPLEMENT THE REST OF THE REQUIREMENTS
-        printf(CMD_OK_HEADER,rc);
-        printf("%s\n",cmd_buff);
+        build_cmd_list(cmd_buff,&clist);
         
         
         if(strcmp(cmd_buff,"exit") == 0){

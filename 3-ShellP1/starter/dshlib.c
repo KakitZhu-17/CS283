@@ -34,6 +34,57 @@
  */
 int build_cmd_list(char *cmd_line, command_list_t *clist)
 {
-    printf(M_NOT_IMPL);
+    int listCount = 1;
+    char *pipe = strtok(cmd_line,PIPE_STRING);
+    //clist->num = listCount;
+    //strcpy(clist->commands->exe,"test1");
+    //strcpy(clist->commands->args,"asd sad as");
+    //printf("%d\n%s\n%s\n",clist->num,clist->commands->exe,clist->commands->args);
+
+
+    while(pipe != NULL){
+        printf("<%d> ",listCount);
+        //printf("%s\n",pipe);
+        char exeArr[EXE_MAX];
+        int i = 0;
+        int exeIndex = 0;
+        int argIndex = 0;
+        int endOfEXE = 0;
+        int len = strlen(pipe);
+        while(i < len){
+            if(pipe[i] != ' '){
+                exeArr[exeIndex] = pipe[i];
+                exeIndex++;
+                endOfEXE++;
+            }
+            else if(pipe[i] == ' ' && i >0){
+                endOfEXE = i+1;
+                break;
+            }
+            i++;
+        }
+        exeArr[exeIndex] = '\0';
+        printf("%s",exeArr);
+        //printf("\n%d %d\n",endOfEXE,len);
+        if(endOfEXE < len-1){
+            char argArr[ARG_MAX];
+            while(endOfEXE < len-1){
+                argArr[argIndex] = pipe[endOfEXE];
+                endOfEXE++;
+                argIndex++;
+            }
+            if(pipe[endOfEXE] != ' '){
+                argArr[argIndex] = pipe[endOfEXE];
+                endOfEXE++;
+                argIndex++;
+            }
+            argArr[argIndex] = '\0';
+            printf(" [%s]",argArr);
+        }
+
+        listCount++;
+        pipe= strtok(NULL,PIPE_STRING);
+        printf("\n");
+    }
     return EXIT_NOT_IMPL;
 }
