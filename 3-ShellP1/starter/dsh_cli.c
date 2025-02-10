@@ -56,17 +56,22 @@ int main()
         }
         //remove the trailing \n from cmd_buff
         cmd_buff[strcspn(cmd_buff,"\n")] = '\0';
+        int len = strlen(cmd_buff);
 
         //IMPLEMENT THE REST OF THE REQUIREMENTS
-        int len = strlen(cmd_buff);
         if(strcmp(cmd_buff,"exit") == 0){ //the exit commmand
             break;
         }
         if(len == 0){
             printf(CMD_WARN_NO_CMD);
         }
-        else if(build_cmd_list(cmd_buff,&clist) == ERR_TOO_MANY_COMMANDS){
-            printf(CMD_ERR_PIPE_LIMIT,CMD_MAX);
+        else{
+            int buildList = build_cmd_list(cmd_buff,&clist);
+            if( buildList == ERR_TOO_MANY_COMMANDS){
+                printf(CMD_ERR_PIPE_LIMIT,CMD_MAX);
+            }else if(buildList == ERR_CMD_OR_ARGS_TOO_BIG){
+                printf("Commmand or arguments too big\n");
+            }
         }
     }
     exit(0);

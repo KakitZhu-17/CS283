@@ -56,9 +56,6 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
         while( pipe[trueLen] == ' '){ //makes sure that the white space at the end of the string is trimmed
             trueLen--;
         }
-        if(trueLen > SH_CMD_MAX){ 
-            return ERR_CMD_OR_ARGS_TOO_BIG;
-        }
 
         if(trueLen > 0){ //this just makes sure that the white space is not a command (this is for cases like this "cmd arg1 | | cmd2 arg1" where a blank is between two '|' )
             printf("<%d> ",listCount);
@@ -67,8 +64,9 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
             int exeIndex = 0;
             int argIndex = 0;
             int endOfEXE = 0; //tracks the end of exe/command part of the string
+            int endOfARG = 0;
             clist->num = listCount;
-            while(i < len){
+            while(i < len){//this is just for cmd
                 if(pipe[i] != ' '){ //as long as the char isnt ' ' we will add it into the exe array 
                     exeArr[exeIndex] = pipe[i];
                     exeIndex++;
@@ -80,6 +78,9 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
                 i++;
             }
             exeArr[exeIndex] = '\0';
+            if(endOfEXE > EXE_MAX){
+                return ERR_CMD_OR_ARGS_TOO_BIG;
+            }
             strcpy(clist->commands->exe,exeArr); //adds/copies the exe array into the struct
             printf("%s ",clist->commands->exe);
             //printf("\nstr len %d , i = %d\n",trueLen , i);
@@ -97,13 +98,16 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
                     }
                     argArr[argIndex] = pipe[i];
                     argIndex++;
+                    endOfARG++;
                     i++;
                 }
                 argArr[argIndex] = '\0';
+                if(endOfARG > ARG_MAX){
+                    return ERR_CMD_OR_ARGS_TOO_BIG;
+                }
                 strcpy(clist->commands->args,argArr); //adds/copies the exe array into the struct
                 printf("[%s]",clist->commands->args);
             }
-
             listCount++;
             printf("\n");
         }
