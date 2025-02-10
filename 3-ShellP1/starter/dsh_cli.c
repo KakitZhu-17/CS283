@@ -57,14 +57,29 @@ int main()
         }
         //remove the trailing \n from cmd_buff
         cmd_buff[strcspn(cmd_buff,"\n")] = '\0';
- 
+
         //IMPLEMENT THE REST OF THE REQUIREMENTS
-        build_cmd_list(cmd_buff,&clist);
-        
-        
-        if(strcmp(cmd_buff,"exit") == 0){
+        int len = strlen(cmd_buff);
+        for(int i = 0; i < len; i++){
+            if(cmd_buff[i] == '|'){
+                rc++;
+            }
+        }
+        rc++;
+        if(strcmp(cmd_buff,"exit") == 0){ //the exit commmand
             break;
         }
+        if(len == 0){
+            printf(CMD_WARN_NO_CMD);
+        }
+        else if(rc > CMD_MAX){
+            printf(CMD_ERR_PIPE_LIMIT,CMD_MAX);
+        }else{
+            printf(CMD_OK_HEADER,rc);
+            build_cmd_list(cmd_buff,&clist);
+        }
+        rc= 0;
+        
     }
     exit(0);
 }

@@ -35,38 +35,32 @@
 int build_cmd_list(char *cmd_line, command_list_t *clist)
 {
     int listCount = 1;
-    char *pipe = strtok(cmd_line,PIPE_STRING);
-    //clist->num = listCount;
-    //strcpy(clist->commands->exe,"test1");
-    //strcpy(clist->commands->args,"asd sad as");
-    //printf("%d\n%s\n%s\n",clist->num,clist->commands->exe,clist->commands->args);
-
-
+    char *pipe = strtok(cmd_line,PIPE_STRING); //splits the command line by the "|" 
     while(pipe != NULL){
         printf("<%d> ",listCount);
-        //printf("%s\n",pipe);
         char exeArr[EXE_MAX];
         int i = 0;
         int exeIndex = 0;
         int argIndex = 0;
-        int endOfEXE = 0;
+        int endOfEXE = 0; //tracks the end of exe/command part of the string
         int len = strlen(pipe);
+        clist->num = listCount;
         while(i < len){
-            if(pipe[i] != ' '){
+            if(pipe[i] != ' '){ //as long as the char isnt ' ' we will add it into the exe array 
                 exeArr[exeIndex] = pipe[i];
                 exeIndex++;
                 endOfEXE++;
             }
-            else if(pipe[i] == ' ' && i >0){
+            else if(pipe[i] == ' ' && i >0){ //this just makes sure that we can move onto the argument part of the command and also makes sure to not add any trailing spaces that could be in the beginning of the commmand (usually after the '|' )
                 endOfEXE = i+1;
                 break;
             }
             i++;
         }
         exeArr[exeIndex] = '\0';
-        printf("%s",exeArr);
-        //printf("\n%d %d\n",endOfEXE,len);
-        if(endOfEXE < len-1){
+        strcpy(clist->commands->exe,exeArr); //adds/copies the exe array into the struct
+        printf("%s",clist->commands->exe);
+        if(endOfEXE < len-1){ //this whole thing just adds the rest of the string/ the arguments into the arg array and copies into the arg field of the struct
             char argArr[ARG_MAX];
             while(endOfEXE < len-1){
                 argArr[argIndex] = pipe[endOfEXE];
@@ -79,7 +73,8 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
                 argIndex++;
             }
             argArr[argIndex] = '\0';
-            printf(" [%s]",argArr);
+            strcpy(clist->commands->args,argArr);
+            printf(" [%s]",clist->commands->args);
         }
 
         listCount++;
