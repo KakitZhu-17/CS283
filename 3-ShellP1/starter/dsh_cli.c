@@ -47,7 +47,6 @@
 int main()
 {
     char *cmd_buff = malloc(sizeof(char)*SH_CMD_MAX);
-    int rc = 0;
     command_list_t clist = {0};
     while(1){
         printf("%s", SH_PROMPT);
@@ -60,26 +59,15 @@ int main()
 
         //IMPLEMENT THE REST OF THE REQUIREMENTS
         int len = strlen(cmd_buff);
-        for(int i = 0; i < len; i++){
-            if(cmd_buff[i] == '|'){
-                rc++;
-            }
-        }
-        rc++;
         if(strcmp(cmd_buff,"exit") == 0){ //the exit commmand
             break;
         }
         if(len == 0){
             printf(CMD_WARN_NO_CMD);
         }
-        else if(rc > CMD_MAX){
+        else if(build_cmd_list(cmd_buff,&clist) == ERR_TOO_MANY_COMMANDS){
             printf(CMD_ERR_PIPE_LIMIT,CMD_MAX);
-        }else{
-            printf(CMD_OK_HEADER,rc);
-            build_cmd_list(cmd_buff,&clist);
         }
-        rc= 0;
-        
     }
     exit(0);
 }

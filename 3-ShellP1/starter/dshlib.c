@@ -34,61 +34,80 @@
  */
 int build_cmd_list(char *cmd_line, command_list_t *clist)
 {
+    int cmdlineLen = strlen(cmd_line);
+    int rc = 0;
+    for(int i = 0; i < cmdlineLen; i++){
+        if(cmd_line[i] == '|'){ //tracks hwo many pip chararter there are
+            rc++;
+        }
+    }
+    rc++;
+    if(rc > CMD_MAX){
+        return ERR_TOO_MANY_COMMANDS;
+    }else{
+        printf(CMD_OK_HEADER,rc);
+    }
     int listCount = 1;
     char *pipe = strtok(cmd_line,PIPE_STRING); //splits the command line by the "|" 
     while(pipe != NULL){
         int i = 0;
         int len = strlen(pipe);
         int trueLen =len-1;
-        printf("\nstr len %d , i = %d\n",trueLen , i);
-        while( pipe[trueLen] == ' '){
+        while( pipe[trueLen] == ' '){ //makes sure that the white space at the end of the string is trimmed
             trueLen--;
         }
-        printf("<%d> ",listCount);
-        char exeArr[EXE_MAX];
-        char argArr[ARG_MAX];
-        int exeIndex = 0;
-        int argIndex = 0;
-        int endOfEXE = 0; //tracks the end of exe/command part of the string
-        clist->num = listCount;
-        while(i < len){
-            if(pipe[i] != ' '){ //as long as the char isnt ' ' we will add it into the exe array 
-                exeArr[exeIndex] = pipe[i];
-                exeIndex++;
-                endOfEXE++;
-                if(pipe[i + 1] == ' '){
-                    break;
-                }
-            }
-            i++;
-        }
-        exeArr[exeIndex] = '\0';
-        //strcpy(clist->commands->exe,exeArr); //adds/copies the exe array into the struct
-        printf("%s ",exeArr);
-        //printf("\nstr len %d , i = %d\n",trueLen , i);
-        if(i < trueLen){
-            i++;
-            while(pipe[i] == ' '){ //removes white space in front of string
-                if(i > len){
-                    break;
-                }
-                i++;
-            }
-            while(i < trueLen+1){
-                while(pipe[i] == ' ' && pipe[i+1] == ' '){
-                    i++;
-                }
-                argArr[argIndex] = pipe[i];
-                argIndex++;
-                i++;
-            }
-            argArr[argIndex] = '\0';
-            printf("[%s]",argArr);
+        if(trueLen > SH_CMD_MAX){ 
+            return ERR_CMD_OR_ARGS_TOO_BIG;
         }
 
-        listCount++;
+        if(trueLen > 0){ //this just makes sure that the white space is not a command (this is for cases like this "cmd arg1 | | cmd2 arg1" where a blank is between two '|' )
+            printf("<%d> ",listCount);
+            char exeArr[EXE_MAX];
+            char argArr[ARG_MAX];
+            int exeIndex = 0;
+            int argIndex = 0;
+            int endOfEXE = 0; //tracks the end of exe/command part of the string
+            clist->num = listCount;
+            while(i < len){
+                if(pipe[i] != ' '){ //as long as the char isnt ' ' we will add it into the exe array 
+                    exeArr[exeIndex] = pipe[i];
+                    exeIndex++;
+                    endOfEXE++;
+                    if(pipe[i + 1] == ' '){
+                        break;
+                    }
+                }
+                i++;
+            }
+            exeArr[exeIndex] = '\0';
+            strcpy(clist->commands->exe,exeArr); //adds/copies the exe array into the struct
+            printf("%s ",clist->commands->exe);
+            //printf("\nstr len %d , i = %d\n",trueLen , i);
+            if(i < trueLen){
+                i++;
+                while(pipe[i] == ' '){ //removes white space in front of string
+                    if(i > len){
+                        break;
+                    }
+                    i++;
+                }
+                while(i < trueLen+1){
+                    while(pipe[i] == ' ' && pipe[i+1] == ' '){ //removes any excess whitespace between arguments
+                        i++;
+                    }
+                    argArr[argIndex] = pipe[i];
+                    argIndex++;
+                    i++;
+                }
+                argArr[argIndex] = '\0';
+                strcpy(clist->commands->args,argArr); //adds/copies the exe array into the struct
+                printf("[%s]",clist->commands->args);
+            }
+
+            listCount++;
+            printf("\n");
+        }
         pipe= strtok(NULL,PIPE_STRING);
-        printf("\n");
     }
-    return EXIT_NOT_IMPL;
+    return OK;
 }
