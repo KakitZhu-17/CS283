@@ -42,22 +42,25 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
         }
     }
     rc++;
+
     if(rc > CMD_MAX){
         return ERR_TOO_MANY_COMMANDS;
     }else{
         printf(CMD_OK_HEADER,rc);
     }
+
+
     int listCount = 1;
     char *pipe = strtok(cmd_line,PIPE_STRING); //splits the command line by the "|" 
     while(pipe != NULL){
         int i = 0;
         int len = strlen(pipe);
         int trueLen =len-1;
-        while( pipe[trueLen] == ' '){ //makes sure that the white space at the end of the string is trimmed
+        while( pipe[trueLen] == ' '){ //this just decrements until we reach a charqacter that not white space(this is to remove excess white space at the end)
             trueLen--;
         }
 
-        if(trueLen > 0){ //this just makes sure that the white space is not a command (this is for cases like this "cmd arg1 | | cmd2 arg1" where a blank is between two '|' )
+        if(trueLen > 0){ //this just makes sure that the white space is not a command (this is for cases like "cmd arg1 | | cmd2 arg1" where a blank is between two '|' )
             printf("<%d> ",listCount);
             char exeArr[EXE_MAX];
             char argArr[ARG_MAX];
@@ -66,8 +69,8 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
             int endOfEXE = 0; //tracks the end of exe/command part of the string
             int endOfARG = 0;
             clist->num = listCount;
-            while(i < len){//this is just for cmd
-                if(pipe[i] != ' '){ //as long as the char isnt ' ' we will add it into the exe array 
+            while(i < len){//this is just for getting cmd by iteself
+                if(pipe[i] != ' '){ //as long as the char isnt ' ' we will add it into the exe array, this also helps remove excess white space in the front of the substring
                     exeArr[exeIndex] = pipe[i];
                     exeIndex++;
                     endOfEXE++;
@@ -78,12 +81,12 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
                 i++;
             }
             exeArr[exeIndex] = '\0';
-            if(endOfEXE > EXE_MAX){
+            if(endOfEXE > EXE_MAX){ //if command is too long
                 return ERR_CMD_OR_ARGS_TOO_BIG;
             }
             strcpy(clist->commands->exe,exeArr); //adds/copies the exe array into the struct
             printf("%s ",clist->commands->exe);
-            //printf("\nstr len %d , i = %d\n",trueLen , i);
+           
             if(i < trueLen){
                 i++;
                 while(pipe[i] == ' '){ //removes white space in front of string
