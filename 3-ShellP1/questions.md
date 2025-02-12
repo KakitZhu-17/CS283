@@ -1,6 +1,6 @@
 1. In this assignment I suggested you use `fgets()` to get user input in the main while loop. Why is `fgets()` a good choice for this application?
 
-    > **Answer**:  it is a good choice for this application because we can set the limit for buffer size and prevents any overflow that can happen. overall its just very safe
+    > **Answer**:  it is a good choice for this application because we can set the limit for buffer size to prevent any overflow that can happen which makes fgets very safe for our uses
 
 2. You needed to use `malloc()` to allocte memory for `cmd_buff` in `dsh_cli.c`. Can you explain why you needed to do that, instead of allocating a fixed-size array?
 

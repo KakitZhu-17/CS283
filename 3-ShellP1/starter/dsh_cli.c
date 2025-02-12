@@ -74,5 +74,6 @@ int main()
             }
         }
     }
+    free(cmd_buff);
     exit(0);
 }
