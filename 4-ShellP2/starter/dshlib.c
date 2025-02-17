@@ -54,7 +54,7 @@
 int exec_local_cmd_loop()
 {
     char *cmd_buff= malloc(sizeof(char)*SH_CMD_MAX);
-    int rc = 0;
+    //int rc = 0;
     cmd_buff_t cmd = {0};
 
     // TODO IMPLEMENT MAIN LOOP
@@ -97,13 +97,13 @@ int exec_local_cmd_loop()
                 }
 
                 if(trueLen > 0){ //this just makes sure that the white space is not a command (this is for cases like "cmd arg1 | | cmd2 arg1" where a blank is between two '|' )
-                    printf("orginal str %s\n",pipe);
+                    //printf("orginal str %s\n",pipe);
                     while(i < trueLen){//this is just for getting cmd by iteself
                         if(pipe[i] == '"'){
                             char *cmdArr = malloc(sizeof(char)*ARG_MAX);
                             int cmdIndex = 0;
-                            cmdArr[cmdIndex] = pipe[i];
-                            cmdIndex++;
+                            //cmdArr[cmdIndex] = pipe[i];
+                            //cmdIndex++;
                             i++;
                             while(pipe[i] != '"' && i < trueLen){
                                 cmdArr[cmdIndex] = pipe[i];
@@ -111,8 +111,8 @@ int exec_local_cmd_loop()
                                 i++;
                             }
                             if(pipe[i] == '"'){
-                                cmdArr[cmdIndex] = pipe[i];
-                                cmdIndex++;
+                                //cmdArr[cmdIndex] = pipe[i];
+                                //cmdIndex++;
                                 cmdArr[cmdIndex] = '\0';
                                 //printf("target: %s\n", cmdArr);
                                 cmd.argv[argCounter]=cmdArr;
@@ -126,7 +126,7 @@ int exec_local_cmd_loop()
                                 cmdArr[cmdIndex] = pipe[i];
                                 i++;
                                 cmdIndex++;
-                                if(i > trueLen || pipe[i] == ' '){
+                                if(i > trueLen || pipe[i+1] == ' '){
                                     break;
                                 }
                             }
@@ -151,7 +151,7 @@ int exec_local_cmd_loop()
             for(int i =0;i<argCounter;i++){
                 int argvLen = strlen(cmd.argv[i]);
 
-                printf("target<%d> %s\n",i,cmd.argv[i]);
+                //printf("target<%d> %s\n",i,cmd.argv[i]);
                 for(int j = 0; j < argvLen;j++){
                     cmdBuffer[cmdBufferIndex] = cmd.argv[i][j];
                     cmdBufferIndex++;
@@ -163,21 +163,41 @@ int exec_local_cmd_loop()
                 //for(int k = 0)
             }
             cmdBuffer[cmdBufferIndex] = '\0';
-            printf("argc %d\n",cmd.argc);
+            //printf("argc %d\n",cmd.argc);
             cmd._cmd_buffer = cmdBuffer;
-            printf("final: %s\n",cmd._cmd_buffer);
+            //printf("final: %s\n",cmd._cmd_buffer);
 
-            int childProcess = fork();
-            if(childProcess == -1){
-                perror("fork error");
-                exit(-1);
-            }
-            if(childProcess == 0){
-                int exe = execvp(cmd.argv[0],cmd.argv);
-                if (exe < 0){
-                    perror("fork error");
-                    exit(-1); 
+
+            if(strcmp(cmd.argv[0],"cd") == 0){
+                //printf("us are using %s|\n",cmd.argv[0]);
+                if(cmd.argc >= 2){
+                    int changeDir = chdir(cmd.argv[1]);
+                    if(changeDir == -1){
+                        perror("cd");
+                    }
                 }
+            }
+            else if(strcmp(cmd.argv[0],"cd") != 0){
+                int childResult;
+                int childProcess = fork();
+                if(childProcess == -1){
+                    perror("fork error");
+                    return -1;
+                }
+                if(childProcess == 0){
+                    int exe = execvp(cmd.argv[0],cmd.argv);
+                    if (exe < 0){
+                        perror("fork error");
+                        return -1; 
+                    }
+
+                }
+                wait(&childResult);
+            }
+
+            for(int i = 0;i < argCounter;i++){
+                free(cmd.argv[i]);
+                cmd.argv[i] = NULL;
             }
             
             
