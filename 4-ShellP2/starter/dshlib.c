@@ -166,6 +166,20 @@ int exec_local_cmd_loop()
             printf("argc %d\n",cmd.argc);
             cmd._cmd_buffer = cmdBuffer;
             printf("final: %s\n",cmd._cmd_buffer);
+
+            int childProcess = fork();
+            if(childProcess == -1){
+                perror("fork error");
+                exit(-1);
+            }
+            if(childProcess == 0){
+                int exe = execvp(cmd.argv[0],cmd.argv);
+                if (exe < 0){
+                    perror("fork error");
+                    exit(-1); 
+                }
+            }
+            
             
         }
 
