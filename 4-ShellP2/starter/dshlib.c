@@ -63,7 +63,7 @@ int build_cmd_buff(char *cmd_buff, cmd_buff_t *cmd){
         }
 
         if(trueLen > 0){ //this just makes sure that the white space is not a command (this is for cases like "cmd arg1 | | cmd2 arg1" where a blank is between two '|' )
-            while(i < trueLen){//this is just for getting cmd by iteself
+            while(i < trueLen+1){//this is just for getting cmd by iteself
                 if(pipe[i] == '"'){ //this deals with quotes (it iterates through until it sees another " char)
                     char *cmdArr = malloc(sizeof(char)*ARG_MAX);
                     int cmdIndex = 0;
@@ -79,20 +79,21 @@ int build_cmd_buff(char *cmd_buff, cmd_buff_t *cmd){
                     }
                     argCounter++;
                 }
-                else if(pipe[i] != ' ' && i < trueLen){ //as long as the char isnt ' ' we will add it into the exe array, this also helps remove excess white space in the front of the substring
+                else if(pipe[i] != ' ' && i < trueLen+1){ //as long as the char isnt ' ' we will add it into the exe array, this also helps remove excess white space in the front of the substring
                     char *cmdArr= malloc(sizeof(char)*ARG_MAX);
                     int cmdIndex = 0;
-                    while(pipe[i] != ' ' && i < trueLen){
+                    while(pipe[i] != ' ' && i < trueLen+1){
                         cmdArr[cmdIndex] = pipe[i];
                         i++;
                         cmdIndex++;
-                        if(i > trueLen || pipe[i+1] == ' '){
+                        if(i > trueLen+1 || pipe[i+1] == ' '){
                             break;
                         }
                     }
                     cmdArr[cmdIndex] = pipe[i];
                     cmdIndex++;
                     cmdArr[cmdIndex] = '\0';
+                    //printf("outer %s|\n",cmdArr);
                     cmd->argv[argCounter]=cmdArr;
                     argCounter++;
                     
@@ -161,8 +162,6 @@ int exec_local_cmd_loop()
         else{
 
             int argCounter =build_cmd_buff(cmd_buff,&cmd);
-            //printf("|%s|\n",cmd.argv[0]);
-            //printf("|%s|\n",cmd.argv[1]);
 
             if(strcmp(cmd.argv[0],"cd") == 0){ 
                 if(cmd.argc >= 2){
