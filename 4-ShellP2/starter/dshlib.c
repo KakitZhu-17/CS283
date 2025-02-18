@@ -97,24 +97,18 @@ int exec_local_cmd_loop()
                 }
 
                 if(trueLen > 0){ //this just makes sure that the white space is not a command (this is for cases like "cmd arg1 | | cmd2 arg1" where a blank is between two '|' )
-                    //printf("orginal str %s\n",pipe);
                     while(i < trueLen){//this is just for getting cmd by iteself
-                        if(pipe[i] == '"'){
+                        if(pipe[i] == '"'){ //this deals with quotes (it iterates through until it sees another " char)
                             char *cmdArr = malloc(sizeof(char)*ARG_MAX);
                             int cmdIndex = 0;
-                            //cmdArr[cmdIndex] = pipe[i];
-                            //cmdIndex++;
                             i++;
-                            while(pipe[i] != '"' && i < trueLen){
+                            while(pipe[i] != '"' && i < trueLen){ 
                                 cmdArr[cmdIndex] = pipe[i];
                                 cmdIndex++;
                                 i++;
                             }
                             if(pipe[i] == '"'){
-                                //cmdArr[cmdIndex] = pipe[i];
-                                //cmdIndex++;
                                 cmdArr[cmdIndex] = '\0';
-                                //printf("target: %s\n", cmdArr);
                                 cmd.argv[argCounter]=cmdArr;
                             }
                             argCounter++;
@@ -133,14 +127,12 @@ int exec_local_cmd_loop()
                             cmdArr[cmdIndex] = pipe[i];
                             cmdIndex++;
                             cmdArr[cmdIndex] = '\0';
-                            //printf("target2: %s\n", cmdArr);
                             cmd.argv[argCounter]=cmdArr;
                             argCounter++;
                             
                         }
                         i++;
                     }
-                    //printf("\n");
                 }
                 pipe= strtok(NULL,PIPE_STRING);
             }
@@ -150,8 +142,6 @@ int exec_local_cmd_loop()
             
             for(int i =0;i<argCounter;i++){
                 int argvLen = strlen(cmd.argv[i]);
-
-                //printf("target<%d> %s\n",i,cmd.argv[i]);
                 for(int j = 0; j < argvLen;j++){
                     cmdBuffer[cmdBufferIndex] = cmd.argv[i][j];
                     cmdBufferIndex++;
@@ -160,16 +150,12 @@ int exec_local_cmd_loop()
 
                     }
                 }
-                //for(int k = 0)
             }
             cmdBuffer[cmdBufferIndex] = '\0';
-            //printf("argc %d\n",cmd.argc);
             cmd._cmd_buffer = cmdBuffer;
-            //printf("final: %s\n",cmd._cmd_buffer);
 
 
-            if(strcmp(cmd.argv[0],"cd") == 0){
-                //printf("us are using %s|\n",cmd.argv[0]);
+            if(strcmp(cmd.argv[0],"cd") == 0){ 
                 if(cmd.argc >= 2){
                     int changeDir = chdir(cmd.argv[1]);
                     if(changeDir == -1){
@@ -180,22 +166,22 @@ int exec_local_cmd_loop()
             else if(strcmp(cmd.argv[0],"cd") != 0){
                 int childResult;
                 int childProcess = fork();
-                if(childProcess == -1){
-                    perror("fork error");
-                    return -1;
-                }
                 if(childProcess == 0){
                     int exe = execvp(cmd.argv[0],cmd.argv);
-                    if (exe < 0){
-                        perror("fork error");
+                    if (exe == -1){
+                        perror("");
                         return -1; 
                     }
 
                 }
+                else if(childProcess == -1){
+                    perror("");
+                    return -1;
+                }
                 wait(&childResult);
             }
 
-            for(int i = 0;i < argCounter;i++){
+            for(int i = 0;i < argCounter;i++){ //frees memorya nd resets it for next use
                 free(cmd.argv[i]);
                 cmd.argv[i] = NULL;
             }

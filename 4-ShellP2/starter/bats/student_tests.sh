@@ -84,7 +84,7 @@ EOF
     [ "$status" -eq 0 ]
 }
 
-@test "cd into file that does not exist" {
+@test "cd into directory that does not exist" {
     run ./dsh <<EOF                
 cd thisfiledoesnotexist
 EOF
@@ -93,6 +93,52 @@ EOF
 
     # Expected output with all whitespace removed for easier matching
     expected_output="cd: No such file or directorydsh2> dsh2> cmd loop returned 0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Assertions
+    [ "$stripped_output" = "$expected_output" ]
+    [ "$status" -eq 0 ]
+}
+
+@test "run a command that does not exist" {
+    run ./dsh <<EOF                
+thisfiledoesnotexist
+EOF
+
+    stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="No such file or directorydsh2> cmd loop returned -1dsh2> dsh2> cmd loop returned 0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Assertions
+    [ "$stripped_output" = "$expected_output" ]
+    [ "$status" -eq 0 ]
+}
+
+@test "running no command" {
+    run ./dsh <<EOF                
+
+EOF
+
+    stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="dsh2> warning: no commands provideddsh2> cmd loop returned 0"
 
     # These echo commands will help with debugging and will only print
     #if the test fails
