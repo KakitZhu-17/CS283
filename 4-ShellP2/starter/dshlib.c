@@ -51,6 +51,80 @@
  *  Standard Library Functions You Might Want To Consider Using (assignment 2+)
  *      fork(), execvp(), exit(), chdir()
  */
+int build_cmd_buff(char *cmd_buff, cmd_buff_t *cmd){
+    int argCounter = 0;
+    char *pipe = strtok(cmd_buff,PIPE_STRING); //splits the command line by the "|" 
+    while(pipe != NULL){
+        int i = 0;
+        int len = strlen(pipe);
+        int trueLen =len-1;
+        while( pipe[trueLen] == ' '){ //this just decrements until we reach a charqacter that not white space(this is to remove excess white space at the end)
+            trueLen--;
+        }
+
+        if(trueLen > 0){ //this just makes sure that the white space is not a command (this is for cases like "cmd arg1 | | cmd2 arg1" where a blank is between two '|' )
+            while(i < trueLen){//this is just for getting cmd by iteself
+                if(pipe[i] == '"'){ //this deals with quotes (it iterates through until it sees another " char)
+                    char *cmdArr = malloc(sizeof(char)*ARG_MAX);
+                    int cmdIndex = 0;
+                    i++;
+                    while(pipe[i] != '"' && i < trueLen){ 
+                        cmdArr[cmdIndex] = pipe[i];
+                        cmdIndex++;
+                        i++;
+                    }
+                    if(pipe[i] == '"'){
+                        cmdArr[cmdIndex] = '\0';
+                        cmd->argv[argCounter]=cmdArr;
+                    }
+                    argCounter++;
+                }
+                else if(pipe[i] != ' ' && i < trueLen){ //as long as the char isnt ' ' we will add it into the exe array, this also helps remove excess white space in the front of the substring
+                    char *cmdArr= malloc(sizeof(char)*ARG_MAX);
+                    int cmdIndex = 0;
+                    while(pipe[i] != ' ' && i < trueLen){
+                        cmdArr[cmdIndex] = pipe[i];
+                        i++;
+                        cmdIndex++;
+                        if(i > trueLen || pipe[i+1] == ' '){
+                            break;
+                        }
+                    }
+                    cmdArr[cmdIndex] = pipe[i];
+                    cmdIndex++;
+                    cmdArr[cmdIndex] = '\0';
+                    cmd->argv[argCounter]=cmdArr;
+                    argCounter++;
+                    
+                }
+                i++;
+            }
+        }
+        pipe= strtok(NULL,PIPE_STRING);
+    }
+    cmd->argc= argCounter;
+    char cmdBuffer[strlen(cmd_buff)];
+    int cmdBufferIndex = 0;
+    
+    for(int i =0;i<argCounter;i++){
+        int argvLen = strlen(cmd->argv[i]);
+        for(int j = 0; j < argvLen;j++){
+            cmdBuffer[cmdBufferIndex] = cmd->argv[i][j];
+            cmdBufferIndex++;
+            if(i != argCounter && j == argvLen){
+                cmdBuffer[cmdBufferIndex] = ' ';
+
+            }
+        }
+    }
+    cmdBuffer[cmdBufferIndex] = '\0';
+    cmd->_cmd_buffer = cmdBuffer;
+    return argCounter;
+
+
+}
+
+
 int exec_local_cmd_loop()
 {
     char *cmd_buff= malloc(sizeof(char)*SH_CMD_MAX);
@@ -86,74 +160,9 @@ int exec_local_cmd_loop()
         }
         else{
 
-            int argCounter = 0;
-            char *pipe = strtok(cmd_buff,PIPE_STRING); //splits the command line by the "|" 
-            while(pipe != NULL){
-                int i = 0;
-                int len = strlen(pipe);
-                int trueLen =len-1;
-                while( pipe[trueLen] == ' '){ //this just decrements until we reach a charqacter that not white space(this is to remove excess white space at the end)
-                    trueLen--;
-                }
-
-                if(trueLen > 0){ //this just makes sure that the white space is not a command (this is for cases like "cmd arg1 | | cmd2 arg1" where a blank is between two '|' )
-                    while(i < trueLen){//this is just for getting cmd by iteself
-                        if(pipe[i] == '"'){ //this deals with quotes (it iterates through until it sees another " char)
-                            char *cmdArr = malloc(sizeof(char)*ARG_MAX);
-                            int cmdIndex = 0;
-                            i++;
-                            while(pipe[i] != '"' && i < trueLen){ 
-                                cmdArr[cmdIndex] = pipe[i];
-                                cmdIndex++;
-                                i++;
-                            }
-                            if(pipe[i] == '"'){
-                                cmdArr[cmdIndex] = '\0';
-                                cmd.argv[argCounter]=cmdArr;
-                            }
-                            argCounter++;
-                        }
-                        else if(pipe[i] != ' ' && i < trueLen){ //as long as the char isnt ' ' we will add it into the exe array, this also helps remove excess white space in the front of the substring
-                            char *cmdArr= malloc(sizeof(char)*ARG_MAX);
-                            int cmdIndex = 0;
-                            while(pipe[i] != ' ' && i < trueLen){
-                                cmdArr[cmdIndex] = pipe[i];
-                                i++;
-                                cmdIndex++;
-                                if(i > trueLen || pipe[i+1] == ' '){
-                                    break;
-                                }
-                            }
-                            cmdArr[cmdIndex] = pipe[i];
-                            cmdIndex++;
-                            cmdArr[cmdIndex] = '\0';
-                            cmd.argv[argCounter]=cmdArr;
-                            argCounter++;
-                            
-                        }
-                        i++;
-                    }
-                }
-                pipe= strtok(NULL,PIPE_STRING);
-            }
-            cmd.argc= argCounter;
-            char cmdBuffer[strlen(cmd_buff)];
-            int cmdBufferIndex = 0;
-            
-            for(int i =0;i<argCounter;i++){
-                int argvLen = strlen(cmd.argv[i]);
-                for(int j = 0; j < argvLen;j++){
-                    cmdBuffer[cmdBufferIndex] = cmd.argv[i][j];
-                    cmdBufferIndex++;
-                    if(i != argCounter && j == argvLen){
-                        cmdBuffer[cmdBufferIndex] = ' ';
-
-                    }
-                }
-            }
-            cmdBuffer[cmdBufferIndex] = '\0';
-            cmd._cmd_buffer = cmdBuffer;
-
+            int argCounter =build_cmd_buff(cmd_buff,&cmd);
+            //printf("|%s|\n",cmd.argv[0]);
+            //printf("|%s|\n",cmd.argv[1]);
 
             if(strcmp(cmd.argv[0],"cd") == 0){ 
                 if(cmd.argc >= 2){
@@ -181,7 +190,7 @@ int exec_local_cmd_loop()
                 wait(&childResult);
             }
 
-            for(int i = 0;i < argCounter;i++){ //frees memorya nd resets it for next use
+            for(int i = 0;i < argCounter;i++){ //frees memory and resets it for next use
                 free(cmd.argv[i]);
                 cmd.argv[i] = NULL;
             }
