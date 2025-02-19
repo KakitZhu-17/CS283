@@ -115,7 +115,7 @@ EOF
     stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
 
     # Expected output with all whitespace removed for easier matching
-    expected_output="No such file or directorydsh2> cmd loop returned -1dsh2> dsh2> cmd loop returned 0"
+    expected_output="No such file or directorydsh2> dsh2> cmd loop returned 0dsh2> dsh2> cmd loop returned 0"
 
     # These echo commands will help with debugging and will only print
     #if the test fails

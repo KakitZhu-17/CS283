@@ -177,14 +177,12 @@ int exec_local_cmd_loop()
                 if(childProcess == 0){
                     int exe = execvp(cmd.argv[0],cmd.argv);
                     if (exe == -1){
-                        perror("");
-                        return -1; 
+                        perror(""); 
                     }
 
                 }
                 else if(childProcess == -1){
                     perror("");
-                    return -1;
                 }
                 wait(&childResult);
             }
