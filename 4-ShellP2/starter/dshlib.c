@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include "dshlib.h"
+#include <errno.h>
 
 /*
  * Implement your exec_local_cmd_loop function by building a loop that prompts the 
@@ -43,7 +44,7 @@
  *   console messages
  *      CMD_WARN_NO_CMD        print on WARN_NO_CMDS
  *      CMD_ERR_PIPE_LIMIT     print on ERR_TOO_MANY_COMMANDS
- *      CMD_ERR_EXECUTE        print on execution failure of external command
+ *      CMD_ERR_EXECUTE        print on execution failure of external command   //note to grader: this is not in the header file so I just used perrer() for any error messages
  * 
  *  Standard Library Functions You Might Want To Consider Using (assignment 1+)
  *      malloc(), free(), strlen(), fgets(), strcspn(), printf()
@@ -51,9 +52,9 @@
  *  Standard Library Functions You Might Want To Consider Using (assignment 2+)
  *      fork(), execvp(), exit(), chdir()
  */
-int build_cmd_buff(char *cmd_buff, cmd_buff_t *cmd){
+int build_cmd_buff(char *cmd_line, cmd_buff_t *cmd_buff){
     int argCounter = 0;
-    char *pipe = strtok(cmd_buff,PIPE_STRING); //splits the command line by the "|" 
+    char *pipe = strtok(cmd_line,PIPE_STRING); //splits the command line by the "|" 
     while(pipe != NULL){
         int i = 0;
         int len = strlen(pipe);
@@ -75,7 +76,7 @@ int build_cmd_buff(char *cmd_buff, cmd_buff_t *cmd){
                     }
                     if(pipe[i] == '"'){
                         cmdArr[cmdIndex] = '\0';
-                        cmd->argv[argCounter]=cmdArr;
+                        cmd_buff->argv[argCounter]=cmdArr;
                     }
                     argCounter++;
                 }
@@ -94,7 +95,7 @@ int build_cmd_buff(char *cmd_buff, cmd_buff_t *cmd){
                     cmdIndex++;
                     cmdArr[cmdIndex] = '\0';
                     //printf("outer %s|\n",cmdArr);
-                    cmd->argv[argCounter]=cmdArr;
+                    cmd_buff->argv[argCounter]=cmdArr;
                     argCounter++;
                     
                 }
@@ -103,14 +104,14 @@ int build_cmd_buff(char *cmd_buff, cmd_buff_t *cmd){
         }
         pipe= strtok(NULL,PIPE_STRING);
     }
-    cmd->argc= argCounter;
-    char cmdBuffer[strlen(cmd_buff)];
+    cmd_buff->argc= argCounter;
+    char cmdBuffer[strlen(cmd_line)];
     int cmdBufferIndex = 0;
     
     for(int i =0;i<argCounter;i++){
-        int argvLen = strlen(cmd->argv[i]);
+        int argvLen = strlen(cmd_buff->argv[i]);
         for(int j = 0; j < argvLen;j++){
-            cmdBuffer[cmdBufferIndex] = cmd->argv[i][j];
+            cmdBuffer[cmdBufferIndex] = cmd_buff->argv[i][j];
             cmdBufferIndex++;
             if(i != argCounter && j == argvLen){
                 cmdBuffer[cmdBufferIndex] = ' ';
@@ -119,7 +120,7 @@ int build_cmd_buff(char *cmd_buff, cmd_buff_t *cmd){
         }
     }
     cmdBuffer[cmdBufferIndex] = '\0';
-    cmd->_cmd_buffer = cmdBuffer;
+    cmd_buff->_cmd_buffer = cmdBuffer;
     return argCounter;
 
 
@@ -129,8 +130,8 @@ int build_cmd_buff(char *cmd_buff, cmd_buff_t *cmd){
 int exec_local_cmd_loop()
 {
     char *cmd_buff= malloc(sizeof(char)*SH_CMD_MAX);
-    //int rc = 0;
     cmd_buff_t cmd = {0};
+    
 
     // TODO IMPLEMENT MAIN LOOP
 
@@ -143,6 +144,7 @@ int exec_local_cmd_loop()
     // for example, if the user input is "ls -l", you would fork/exec the command "ls" with the arg "-l"
 
     while(1){
+        int rc;
         printf("%s", SH_PROMPT);
         if (fgets(cmd_buff, ARG_MAX, stdin) == NULL){
             printf("\n");
@@ -168,23 +170,44 @@ int exec_local_cmd_loop()
                     int changeDir = chdir(cmd.argv[1]);
                     if(changeDir == -1){
                         perror("cd");
+                        rc = changeDir;
+                    }
+                    else{
+                        rc =0;
                     }
                 }
+            }
+            else if(strcmp(cmd.argv[0],"rc") == 0){  //rc command
+                printf("%d\n",rc);
+                rc = 0;
+                
             }
             else if(strcmp(cmd.argv[0],"cd") != 0){
                 int childResult;
                 int childProcess = fork();
+                int error;
+                if(childProcess == -1){
+                    perror("");
+                }
                 if(childProcess == 0){
                     int exe = execvp(cmd.argv[0],cmd.argv);
                     if (exe == -1){
                         perror(""); 
+                        error =errno;
+                        exit(error);
+                        
                     }
+                }
+                else{
+                    int waitStat = wait(&childResult);
+                    int extractExitCode = WEXITSTATUS(childResult);
+                    rc = extractExitCode;
+                    if(waitStat == -1){
+                        perror("");
+                        rc = waitStat;
+                    }
+                }
 
-                }
-                else if(childProcess == -1){
-                    perror("");
-                }
-                wait(&childResult);
             }
 
             for(int i = 0;i < argCounter;i++){ //frees memory and resets it for next use
