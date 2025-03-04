@@ -296,7 +296,7 @@ EOF
     [ "$status" -eq 0 ]
 }
 
-@test "Change directory without /tmp (in case the other change direcotry test doesnt work since its bugged)" {
+@test "Change directory (this uses grep to check)" {
     run "./dsh" <<EOF                
 cd bats
 pwd | grep -o bats
@@ -417,4 +417,106 @@ EOF
     # Check exact match
     [ "$stripped_output" = "$expected_output" ]
     
+}
+
+@test "test rc command without running any commands before it" {
+    run "./dsh" <<EOF                
+rc 
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="dsh3> 0dsh3> cmd loop returned 0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+}
+
+@test "run rc after running a command that does not exist" {
+    run "./dsh" <<EOF
+doesNotExist                
+rc 
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="No such file or directorydsh3> dsh3> dsh3> 22dsh3> cmd loop returned 0"  #not sure why BATS gets 22 but in normal use it just does 2
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+}
+
+
+@test "run rc after running a command successfully" {
+    run ./dsh <<EOF                
+uname
+rc
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="Linuxdsh3>dsh3>0dsh3>cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "run rc after using cd into a directory that does not exist" {
+    run ./dsh <<EOF                
+cd doesNotExist
+rc
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="cd:Nosuchfileordirectorydsh3>dsh3>1dsh3>cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
 }
