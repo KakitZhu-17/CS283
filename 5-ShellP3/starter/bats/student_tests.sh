@@ -175,6 +175,98 @@ EOF
     [ "$status" -eq 0 ]
 }
 
+@test "just white space (four spaces)" {
+    run ./dsh <<EOF                
+    
+EOF
+
+    stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="dsh3> warning: no commands provideddsh3> cmd loop returned 0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Assertions
+    [ "$stripped_output" = "$expected_output" ]
+    [ "$status" -eq 0 ]
+}
+
+@test "run a pipe with no cammands and with excess space in the front" {
+    run ./dsh <<EOF                
+    |
+EOF
+
+    stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="dsh3> warning: no commands provideddsh3> cmd loop returned 0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Assertions
+    [ "$stripped_output" = "$expected_output" ]
+    [ "$status" -eq 0 ]
+}
+
+@test "run a pipe with no commands and excess space in the back" {
+    run ./dsh <<EOF                
+|         
+EOF
+
+    stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="dsh3> warning: no commands provideddsh3> cmd loop returned 0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Assertions
+    [ "$stripped_output" = "$expected_output" ]
+    [ "$status" -eq 0 ]
+}
+
+@test "using pipe with no commands" {
+    run ./dsh <<EOF                
+|
+EOF
+
+    stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="dsh3> warning: no commands provideddsh3> cmd loop returned 0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Assertions
+    [ "$stripped_output" = "$expected_output" ]
+    [ "$status" -eq 0 ]
+}
+
 @test "running a command with multiple arguments" {
     run "./dsh" <<EOF                
    echo " arg one" "arg two" "arg three" 
@@ -375,14 +467,37 @@ EOF
 
 @test "piping 3 commands" {
     run "./dsh" <<EOF                
-   uname | wc -l | wc -l
+   echo 1253476 | grep -o 1253 | grep -o 125
 EOF
 
     # Strip all whitespace (spaces, tabs, newlines) from the output
     stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
 
     # Expected output with all whitespace removed for easier matching
-    expected_output="1dsh3> dsh3> cmd loop returned 0"
+    expected_output="125dsh3> dsh3> cmd loop returned 0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+    
+}
+
+@test "piping commands with excess spacing" {
+    run "./dsh" <<EOF                
+   echo      1253476 |       grep -o 1253      |        grep -o 125         
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '\t\n\r\f\v')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="125dsh3> dsh3> cmd loop returned 0"
 
     # These echo commands will help with debugging and will only print
     #if the test fails

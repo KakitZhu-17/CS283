@@ -185,12 +185,12 @@ int execute_pipeline(command_list_t *clist){
 int exec_local_cmd_loop()
 {
     char *cmd_buff= malloc(sizeof(char)*SH_CMD_MAX);
-    int rcFirstState = 0; //this will be used to see if rc is the first command or not, without this it, it would return a random number if no commands used beforehand
+    int rcFirstState = 0; //this will be used to see if rc is the first command or not (0 for true and 1 for false), without this it, it would return a random number if no commands used beforehand
 
     while(1){
         int rc;
         if(rcFirstState == 0){
-            rc = 0;
+            rc = OK;
         }
         int cmdCount = 0;
         printf("%s", SH_PROMPT);
@@ -201,35 +201,45 @@ int exec_local_cmd_loop()
         //remove the trailing \n from cmd_buff
         cmd_buff[strcspn(cmd_buff,"\n")] = '\0';
         int len = strlen(cmd_buff);
-        for(int i = 0; i < len;i++){ //counts pipe chars
+        int isEmpty = 0; //works like a boolean 0 means true and 1 means false, this is used in the for loop below to check if the buffer is empty or not (it is to account for situations like "  |  " or "    ")
+        for(int i = 0; i < len;i++){ 
+            if(cmd_buff[i] != '|' && cmd_buff[i] != ' '){ 
+                isEmpty = 1;
+            }
             if(cmd_buff[i] == '|'){
                 cmdCount++;
             }
         }
         if(cmdCount > CMD_MAX-1){
             printf(CMD_ERR_PIPE_LIMIT,CMD_MAX);
+            rc = ERR_TOO_MANY_COMMANDS;
+            rcFirstState = 1;
         }
         
         else if(strcmp(cmd_buff,"exit") == 0){ //the exit commmand
+            printf("exiting...\n");
             break;
         }
-        else if(len == 0){
+        else if(len == 0 || cmd_buff[0] == PIPE_CHAR || isEmpty == 0){
             printf(CMD_WARN_NO_CMD);
         }
         else{
             int currentCmdindex = 0;
             command_list_t commandList = {0};
             commandList.num = cmdCount;
+
             char *pipe = strtok(cmd_buff,PIPE_STRING);
-            while(pipe != NULL){
+            while(pipe != NULL){  //basic idea of this is just adding all the cmd_buff_t into the command list command array
+                
                 cmd_buff_t cmd = {0};
                 build_cmd_buff(pipe,&cmd);
-                commandList.commands[currentCmdindex] = cmd;
+                commandList.commands[currentCmdindex] = cmd; 
                 currentCmdindex++;
+                
                 pipe= strtok(NULL,PIPE_STRING);
             }
 
-            if(strcmp(commandList.commands[0].argv[0],"cd") == 0){ 
+            if(strcmp(commandList.commands[0].argv[0],"cd") == 0){ //cd commands
                 if(commandList.commands[0].argc >= 2){
                     int changeDir = chdir(commandList.commands[0].argv[1]);
                     if(changeDir == -1){
@@ -241,7 +251,7 @@ int exec_local_cmd_loop()
             }
             else if(strcmp(commandList.commands[0].argv[0],"rc") == 0){  //rc command
                 printf("%d\n",rc);
-                rc =0;
+                rc =OK;
                 rcFirstState = 1;
             }
             else{    
@@ -251,7 +261,7 @@ int exec_local_cmd_loop()
 
             }
 
-            for(int a = 0;a < commandList.num+1;a++){ 
+            for(int a = 0;a < commandList.num+1;a++){ //this just frees memory inside the cmd_buff_t struct inside of command list
                 for(int b = 0; b < commandList.commands[a].argc;b++){
                     free(commandList.commands[a].argv[b]);
                 }
