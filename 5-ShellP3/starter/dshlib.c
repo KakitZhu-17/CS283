@@ -87,7 +87,6 @@ int build_cmd_buff(char *cmd_line, cmd_buff_t *cmd_buff){
                 int cmdIndex = 0;
                 while(cmd_line[i] != ' ' && i < trueLen){
                     cmdArr[cmdIndex] = cmd_line[i];
-                    //printf("%c",cmd_line[i]);
                     i++;
                     cmdIndex++;
                     if(i > trueLen || cmd_line[i+1] == ' '){
@@ -97,7 +96,6 @@ int build_cmd_buff(char *cmd_line, cmd_buff_t *cmd_buff){
                 cmdArr[cmdIndex] = cmd_line[i];
                 cmdIndex++;
                 cmdArr[cmdIndex] = '\0';
-                //printf("|%s|\n",cmdArr);
                 cmd_buff->argv[argCounter]=cmdArr;
                 argCounter++;
                     
@@ -131,7 +129,7 @@ int execute_pipeline(command_list_t *clist){
         if(pids[currentCmd] == 0) {  
                
             if (currentCmd != 0) { //this will only work if its not the first command
-                int dupOne = dup2(pipeArr[currentCmd-1][0], STDIN_FILENO);
+                int dupOne = dup2(pipeArr[currentCmd-1][0], STDIN_FILENO); //gets output previous command (the read end) 
                 if(dupOne == -1){
                     perror("");
                     exit(-1);
@@ -139,7 +137,7 @@ int execute_pipeline(command_list_t *clist){
             }
 
             if (currentCmd < clist->num) {
-                int dupTwo =dup2(pipeArr[currentCmd][1], STDOUT_FILENO);
+                int dupTwo =dup2(pipeArr[currentCmd][1], STDOUT_FILENO); //gets/duplicates current process output into the write end
                 if(dupTwo == -1){
                     perror("");
                     exit(-1);
@@ -175,7 +173,7 @@ int execute_pipeline(command_list_t *clist){
             perror("");
             exit(-1);
         }
-        int currentExitStat = WEXITSTATUS(exitStat);
+        int currentExitStat = WEXITSTATUS(exitStat); 
         if(currentExitStat != 0){
             rc = currentExitStat;
         }
@@ -187,7 +185,7 @@ int execute_pipeline(command_list_t *clist){
 int exec_local_cmd_loop()
 {
     char *cmd_buff= malloc(sizeof(char)*SH_CMD_MAX);
-    int rcFirstState = 0; //this will be used to see if rc is the first command or not, without this it usually if no commands are run it becomes a random number
+    int rcFirstState = 0; //this will be used to see if rc is the first command or not, without this it, it would return a random number if no commands used beforehand
 
     while(1){
         int rc;
