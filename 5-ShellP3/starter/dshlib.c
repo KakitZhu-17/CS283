@@ -187,9 +187,13 @@ int execute_pipeline(command_list_t *clist){
 int exec_local_cmd_loop()
 {
     char *cmd_buff= malloc(sizeof(char)*SH_CMD_MAX);
+    int rcFirstState = 0; //this will be used to see if rc is the first command or not, without this it usually if no commands are run it becomes a random number
 
     while(1){
         int rc;
+        if(rcFirstState == 0){
+            rc = 0;
+        }
         int cmdCount = 0;
         printf("%s", SH_PROMPT);
         if (fgets(cmd_buff, ARG_MAX, stdin) == NULL){
@@ -233,15 +237,19 @@ int exec_local_cmd_loop()
                     if(changeDir == -1){
                         perror("cd");
                         rc = 1; //chdir returns -1 so i will just return 1 to be safe
+                        rcFirstState = 1;
                     }
                 }
             }
             else if(strcmp(commandList.commands[0].argv[0],"rc") == 0){  //rc command
                 printf("%d\n",rc);
                 rc =0;
+                rcFirstState = 1;
             }
             else{    
-                execute_pipeline(&commandList);
+                int exePipeline = execute_pipeline(&commandList);
+                rc =exePipeline;
+                rcFirstState = 1;
 
             }
 
