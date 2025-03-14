@@ -301,7 +301,7 @@ int exec_client_requests(int cli_socket) {
             sprintf(overLimit,CMD_ERR_PIPE_LIMIT,CMD_MAX);
             
             int sendCode= send_message_string(cli_socket,overLimit);
-            if(sendCode == -1){
+            if(sendCode == ERR_RDSH_COMMUNICATION){
                 return ERR_RDSH_COMMUNICATION;
             }
             rc = ERR_TOO_MANY_COMMANDS;
@@ -314,7 +314,7 @@ int exec_client_requests(int cli_socket) {
         else if(strcmp(io_buff,"exit") == 0){ //exit command
             printf(RCMD_MSG_CLIENT_EXITED);
             int sendCode = send_message_string(cli_socket,RCMD_MSG_CLIENT_EXITED);
-            if(sendCode == -1){
+            if(sendCode == ERR_RDSH_COMMUNICATION){
                 return ERR_RDSH_COMMUNICATION;
             }
             int eofCode = send_message_eof(cli_socket);
@@ -325,7 +325,7 @@ int exec_client_requests(int cli_socket) {
         }
         else if(strcmp(io_buff,"stop-server") == 0){ //stop-server command
             int sendCode = send_message_string(cli_socket,RCMD_MSG_SVR_STOP_REQ);
-            if(sendCode == -1){
+            if(sendCode == ERR_RDSH_COMMUNICATION){
                 return ERR_RDSH_COMMUNICATION;
             }
             int eofCode = send_message_eof(cli_socket);
