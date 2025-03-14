@@ -207,8 +207,8 @@ int start_client(char *server_ip, int port){
 
 
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = inet_addr(RDSH_DEF_CLI_CONNECT);
-    addr.sin_port = htons(RDSH_DEF_PORT);
+    addr.sin_addr.s_addr = inet_addr(server_ip);
+    addr.sin_port = htons(port);
 
     ret = connect ( cli_socket, (const struct sockaddr *) &addr, sizeof(struct sockaddr_in));
     if (ret == -1) {

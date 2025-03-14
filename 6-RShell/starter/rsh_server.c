@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/un.h>
 #include <fcntl.h>
+#include <errno.h>
 
 //INCLUDES for extra credit
 //#include <signal.h>
@@ -129,7 +130,7 @@ int boot_server(char *ifaces, int port){
     }
 
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_addr.s_addr = inet_addr(ifaces);
     addr.sin_port = htons(port);
     ret = bind(svr_socket,(const struct sockaddr *) &addr, sizeof(struct sockaddr_in));
     if (ret == -1) {
@@ -265,17 +266,21 @@ int process_cli_requests(int svr_socket){
 int exec_client_requests(int cli_socket) {
     int rc;
     //int cmd_rc;
-    int last_rc;
+    //int last_rc;
     char *io_buff;
     int ret;
+    int rcFirstState = 0;
 
     io_buff = malloc(RDSH_COMM_BUFF_SZ);
     if (io_buff == NULL){
         return ERR_RDSH_SERVER;
     }
-    rc =0 ;
 
     while(1) {
+
+        if(rcFirstState == 0){
+            rc = OK;
+        }
         command_list_t cmd_list;
         // TODO use recv() syscall to get input
         memset(io_buff, 0, RDSH_COMM_BUFF_SZ);
@@ -319,16 +324,43 @@ int exec_client_requests(int cli_socket) {
         }
         cmd_list.num = cmdCount;
 
-        // TODO rsh_execute_pipeline to run your cmd_list
-        printf("cmd count: %d\n",cmd_list.num);
-        rc = rsh_execute_pipeline(cli_socket,&cmd_list);
+        if(cmdCount > CMD_MAX){
+            printf(CMD_ERR_PIPE_LIMIT,CMD_MAX);
+            rc = ERR_TOO_MANY_COMMANDS;
+            rcFirstState = 1;
+            send_message_s
+        }
+        else if(strcmp(cmd_list.commands[0].argv[0],"cd") == 0){ //cd commands
+            if(cmd_list.commands[0].argc >= 2){
+                int changeDir = chdir(cmd_list.commands[0].argv[1]);
+                if(changeDir == -1){
+                    perror("cd");
+                    rc = 1; //chdir returns -1 so i will just return 1 to be safe
+                    rcFirstState = 1;
+                }
+            }
+        }
+        else if(strcmp(cmd_list.commands[0].argv[0],"rc") == 0){ //exit command
+            char sendRc = rc + 48;
+            char sendBuffer[3];
+            sendBuffer[0] = sendRc;
+            sendBuffer[1] = '\n';
+            sendBuffer[2] = '\0';
+            send(cli_socket,sendBuffer,3,0);
+            rc =0;
+        }
+        else{
+            // TODO rsh_execute_pipeline to run your cmd_list
+            printf("cmd count: %d\n",cmd_list.num);
+            rc = rsh_execute_pipeline(cli_socket,&cmd_list);
+            rcFirstState = 1;
+        }
+
         for(int a = 0;a < cmd_list.num;a++){ //this just frees memory inside the cmd_buff_t struct inside of command list
             for(int b = 0; b < cmd_list.commands[a].argc;b++){
                 free(cmd_list.commands[a].argv[b]);
             }
         }
-
-        printf("commmand executed\n");
 
         // TODO send appropriate respones with send_message_string
         // - error constants for failures
@@ -346,7 +378,6 @@ int exec_client_requests(int cli_socket) {
         if(eofCode == ERR_RDSH_COMMUNICATION){
             return ERR_RDSH_COMMUNICATION;
         }
-        last_rc = rc;
     }
     free(io_buff);
 
@@ -451,7 +482,6 @@ int rsh_execute_pipeline(int cli_sock, command_list_t *clist) {
     int pipes[clist->num-1][2];  // Array of pipes
     pid_t pids[clist->num];
     int  pids_st[clist->num];         // Array to store process IDs
-    Built_In_Cmds bi_cmd;
     int exit_code;
 
     // Create all necessary pipes
@@ -517,9 +547,11 @@ int rsh_execute_pipeline(int cli_sock, command_list_t *clist) {
             }
 
             // Execute command
-            execvp(clist->commands[i].argv[0], clist->commands[i].argv);
-            perror("execvp");
-            exit(EXIT_FAILURE);
+            int exec = execvp(clist->commands[i].argv[0], clist->commands[i].argv);
+            if(exec == -1){
+                perror("execvp");
+                exit(errno);
+            }
         }
 
     }
@@ -544,6 +576,7 @@ int rsh_execute_pipeline(int cli_sock, command_list_t *clist) {
         if (WEXITSTATUS(pids_st[i]) == EXIT_SC)
             exit_code = EXIT_SC;
     }
+    printf("in func rc: %d\n",exit_code);
     
     return exit_code;
 }
