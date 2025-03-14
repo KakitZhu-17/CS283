@@ -265,11 +265,9 @@ int process_cli_requests(int svr_socket){
  */
 int exec_client_requests(int cli_socket) {
     int rc;
-    //int cmd_rc;
-    //int last_rc;
     char *io_buff;
     int ret;
-    int rcFirstState = 0;
+    int rcFirstState = 0; //acts like a boolean to make sure rc is a zero if we did not do a command before
 
     io_buff = malloc(RDSH_COMM_BUFF_SZ);
     if (io_buff == NULL){
@@ -292,16 +290,15 @@ int exec_client_requests(int cli_socket) {
 
         // TODO build up a cmd_list
         io_buff[ret] = '\0';
-        printf("io buff: |%s|\n",io_buff);
 
         if(strcmp(io_buff,"exit") == 0){ //exit command
-            
+            printf(RCMD_MSG_CLIENT_EXITED);
+            send_message_string(cli_socket,RCMD_MSG_CLIENT_EXITED);
             send_message_eof(cli_socket);
-            printf("exiting...\n");
             return OK;
         }
         else if(strcmp(io_buff,"stop-server") == 0){ //stop-server command
-            
+            send_message_string(cli_socket,RCMD_MSG_SVR_STOP_REQ);
             int eofCode = send_message_eof(cli_socket);
             if(eofCode == ERR_RDSH_COMMUNICATION){
                 return ERR_RDSH_COMMUNICATION;
@@ -324,11 +321,13 @@ int exec_client_requests(int cli_socket) {
         }
         cmd_list.num = cmdCount;
 
-        if(cmdCount > CMD_MAX){
-            printf(CMD_ERR_PIPE_LIMIT,CMD_MAX);
+        if(cmdCount > CMD_MAX){ //checks if we have roe than 8 cmds
+            char overMaxBuffer[strlen(CMD_ERR_PIPE_LIMIT )];
+            sprintf(overMaxBuffer,CMD_ERR_PIPE_LIMIT ,cmdCount); 
+            printf("%s size: %ld\n", overMaxBuffer, strlen(overMaxBuffer));
+            //send_message_string(cli_socket,overMaxBuffer);
             rc = ERR_TOO_MANY_COMMANDS;
             rcFirstState = 1;
-            send_message_s
         }
         else if(strcmp(cmd_list.commands[0].argv[0],"cd") == 0){ //cd commands
             if(cmd_list.commands[0].argc >= 2){
@@ -340,14 +339,12 @@ int exec_client_requests(int cli_socket) {
                 }
             }
         }
-        else if(strcmp(cmd_list.commands[0].argv[0],"rc") == 0){ //exit command
-            char sendRc = rc + 48;
-            char sendBuffer[3];
-            sendBuffer[0] = sendRc;
-            sendBuffer[1] = '\n';
-            sendBuffer[2] = '\0';
-            send(cli_socket,sendBuffer,3,0);
-            rc =0;
+        else if(strcmp(cmd_list.commands[0].argv[0],"rc") == 0){ //rc command
+            char sendBuffer[strlen(RCMD_MSG_SVR_RC_CMD)];
+            sprintf(sendBuffer,RCMD_MSG_SVR_RC_CMD,rc); 
+            printf("|%s|\n",sendBuffer);
+            send_message_string(cli_socket,sendBuffer);
+            rc =0; //resets rc for next use
         }
         else{
             // TODO rsh_execute_pipeline to run your cmd_list
@@ -361,17 +358,6 @@ int exec_client_requests(int cli_socket) {
                 free(cmd_list.commands[a].argv[b]);
             }
         }
-
-        // TODO send appropriate respones with send_message_string
-        // - error constants for failures
-        // - buffer contents from execute commands
-        //  - etc.
-        
-        //int sendCode =send_message_string(cli_socket,io_buff);
-        //printf("sending back\n");
-        //if(sendCode == ERR_RDSH_COMMUNICATION){
-        //    return ERR_RDSH_COMMUNICATION;
-        //}
 
         // TODO send_message_eof when done
         int eofCode = send_message_eof(cli_socket);

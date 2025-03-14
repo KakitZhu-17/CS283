@@ -112,6 +112,7 @@ int exec_remote_cmd_loop(char *address, int port)
     {
         memset(cmd_buff , 0, RDSH_COMM_BUFF_SZ);
         memset(rsp_buff, 0, RDSH_COMM_BUFF_SZ);
+        
         // TODO print prompt
         printf("%s", SH_PROMPT);
 
@@ -128,17 +129,19 @@ int exec_remote_cmd_loop(char *address, int port)
         int sent_len = send(cli_socket, cmd_buff, strlen(cmd_buff)+1, 0);
         if(sent_len == -1){
             perror("client send: ");
-            exit(-1);
+            return client_cleanup(cli_socket, cmd_buff, rsp_buff, ERR_RDSH_COMMUNICATION);
         }
+        printf(RCMD_MSG_SVR_EXEC_REQ,cmd_buff);
 
         // TODO recv all the results
         while (1){
             int recv_size= recv(cli_socket, rsp_buff, sizeof(rsp_buff),0);
-            //we got recv_size bytes
             if (recv_size < 0){
                 perror("recv: ");
+                return client_cleanup(cli_socket, cmd_buff, rsp_buff, ERR_RDSH_COMMUNICATION);
             }
             if (recv_size == 0){
+                printf("server down\n");
                 break;
             }
 
@@ -162,7 +165,6 @@ int exec_remote_cmd_loop(char *address, int port)
             break;
         }
 
-        // TODO break on exit command
     }
 
     return client_cleanup(cli_socket, cmd_buff, rsp_buff, OK);
