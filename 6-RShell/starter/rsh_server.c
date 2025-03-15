@@ -295,12 +295,24 @@ int exec_client_requests(int cli_socket) {
                 cmdCount++;
             }
         }
-        if(cmdCount > CMD_MAX-1){
+        if(cmdCount > CMD_MAX-1){ //check if theres too many commands
             printf(CMD_ERR_PIPE_LIMIT,CMD_MAX);
             char overLimit[strlen(CMD_ERR_PIPE_LIMIT)];
             sprintf(overLimit,CMD_ERR_PIPE_LIMIT,CMD_MAX);
             
             int sendCode= send_message_string(cli_socket,overLimit);
+            if(sendCode == ERR_RDSH_COMMUNICATION){
+                return ERR_RDSH_COMMUNICATION;
+            }
+            rc = ERR_TOO_MANY_COMMANDS;
+            rcFirstState = 1;
+            int eofCode = send_message_eof(cli_socket);
+            if(eofCode == ERR_RDSH_COMMUNICATION){
+                return ERR_RDSH_COMMUNICATION;
+            }
+        }
+        else if(len == 0 || io_buff[0] == PIPE_CHAR || isEmpty == 0){ //checks if there is no command
+            int sendCode= send_message_string(cli_socket,CMD_WARN_NO_CMD);
             if(sendCode == ERR_RDSH_COMMUNICATION){
                 return ERR_RDSH_COMMUNICATION;
             }

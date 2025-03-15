@@ -723,6 +723,7 @@ EOF
 
 }
 
+
 @test "run rc after using cd into a directory that does not exist" {
     run ./dsh <<EOF                
 cd doesNotExist
@@ -734,6 +735,326 @@ EOF
 
     # Expected output with all whitespace removed for easier matching
     expected_output="cd:Nosuchfileordirectorylocalmodedsh4>dsh4>1dsh4>cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "NOTE: please use dsh -s and set port number to 1789 before running these tests, thank you" {
+    run ./dsh <<EOF                
+ls
+EOF
+
+    # Assertions
+    [ "$status" -eq 0 ]
+}
+
+@test "client start exit" {
+    run ./dsh -c <<EOF                
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "client pipe command (same as the one in assignment_test.sh)" {
+    run ./dsh -c <<EOF
+ls | grep dshlib.c                
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:ls|grepdshlib.cdshlib.cdsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "client using rc after running a command that does not exit" {
+    run ./dsh -c <<EOF
+jksdnfksdnfk  
+rc              
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:jksdnfksdnfkexecvp:Nosuchfileordirectorydsh4>rdsh-exec:rcrdsh-exec:rc=2dsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "client using rc on after a successful command" {
+    run ./dsh -c <<EOF
+uname  
+rc              
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:unameLinuxdsh4>rdsh-exec:rcrdsh-exec:rc=0dsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "client 4 command" {
+    run ./dsh -c <<EOF
+echo 123456789 | grep -o 12345678 | grep -o 1234567 | grep -o 123456               
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:echo123456789|grep-o12345678|grep-o1234567|grep-o123456123456dsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "client piping 8 command" {
+    run ./dsh -c <<EOF
+echo 123456789 | grep -o 12345678 | grep -o 1234567 | grep -o 123456 | grep -o 12345 | grep -o 1234 | grep -o 123 |  grep -o 12               
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:echo123456789|grep-o12345678|grep-o1234567|grep-o123456|grep-o12345|grep-o1234|grep-o123|grep-o1212dsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "client piping more than 9 command" {
+    run ./dsh -c <<EOF
+echo 123456789 | grep -o 12345678 | grep -o 1234567 | grep -o 123456 | grep -o 12345 | grep -o 1234 | grep -o 123 |  grep -o 12 |grep -o 1              
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:echo123456789|grep-o12345678|grep-o1234567|grep-o123456|grep-o12345|grep-o1234|grep-o123|grep-o12|grep-o1error:pipinglimitedto8commandsdsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+
+@test "client no command" {
+    run ./dsh -c <<EOF
+        
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:warning:nocommandsprovideddsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "client using cd command (and cd ..)" {
+    run ./dsh -c <<EOF
+cd bats
+pwd | grep -o bats
+cd ..
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:cdbatsdsh4>rdsh-exec:pwd|grep-obatsbatsdsh4>rdsh-exec:cd..dsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "client using cd command on file that does not exist" {
+    run ./dsh -c <<EOF
+cd dsfdsfdsf
+exit
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:cddsfdsfdsfdsh4>rdsh-exec:exitclientexited:gettingnextconnection...exiting...cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:" 
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
+
+@test "client stop server" {
+    run ./dsh -c <<EOF
+stop-server
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="socketclientmode:addr:127.0.0.1:1789dsh4>rdsh-exec:stop-serverclientrequestedservertostop,stopping...cmdloopreturned0"
 
     # These echo commands will help with debugging and will only print
     #if the test fails
